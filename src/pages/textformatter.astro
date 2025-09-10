@@ -1,0 +1,675 @@
+---
+// textformatter.astro
+---
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Text Formatter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .text-area-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .text-area-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .text-area-label {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .char-count {
+            font-size: 0.9rem;
+            color: #666;
+            margin-left: auto;
+        }
+
+        textarea {
+            width: 100%;
+            height: 400px;
+            padding: 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        .controls {
+            grid-column: 1 / -1;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .controls h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .control-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .control-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-section h4 {
+            margin-bottom: 15px;
+            color: #555;
+            font-size: 1rem;
+            font-weight: 600;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            background: #667eea;
+            color: white;
+            border: 2px solid transparent;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn.secondary {
+            background: #6c757d;
+        }
+
+        .btn.secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn.danger {
+            background: #dc3545;
+        }
+
+        .btn.danger:hover {
+            background: #c82333;
+        }
+
+        .stats {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .text-area-container {
+            position: relative;
+        }
+
+        .text-area-container:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .control-sections {
+                grid-template-columns: 1fr;
+            }
+
+            textarea {
+                height: 250px;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Advanced Text Formatter</h1>
+            <p>Transform, clean, and format your text with powerful tools</p>
+        </div>
+
+        <div class="main-content">
+            <div class="text-area-container">
+                <div class="text-area-header">
+                    <div class="text-area-label">📝 Input Text</div>
+                    <div class="char-count" id="input-count">0 characters</div>
+                </div>
+                <textarea id="input-text" placeholder="Paste or type your text here..."></textarea>
+                <button class="copy-btn" onclick="copyToClipboard('input-text')">📋 Copy</button>
+            </div>
+
+            <div class="text-area-container">
+                <div class="text-area-header">
+                    <div class="text-area-label">✨ Output Text</div>
+                    <div class="char-count" id="output-count">0 characters</div>
+                </div>
+                <textarea id="output-text" placeholder="Formatted text will appear here..." readonly></textarea>
+                <button class="copy-btn" onclick="copyToClipboard('output-text')">📋 Copy</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>🛠️ Formatting Tools</h3>
+            <div class="control-sections">
+                <div class="control-section">
+                    <h4>📝 Case Conversion</h4>
+                    <div class="button-group">
+                        <button class="btn" onclick="transformText('uppercase')">UPPERCASE</button>
+                        <button class="btn" onclick="transformText('lowercase')">lowercase</button>
+                        <button class="btn" onclick="transformText('titlecase')">Title Case</button>
+                        <button class="btn" onclick="transformText('camelcase')">camelCase</button>
+                        <button class="btn" onclick="transformText('pascalcase')">PascalCase</button>
+                        <button class="btn" onclick="transformText('snakecase')">snake_case</button>
+                        <button class="btn" onclick="transformText('kebabcase')">kebab-case</button>
+                        <button class="btn" onclick="transformText('alternating')">aLtErNaTiNg</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h4>🧹 Text Cleaning</h4>
+                    <div class="button-group">
+                        <button class="btn" onclick="transformText('trim')">Trim Spaces</button>
+                        <button class="btn" onclick="transformText('removeExtraSpaces')">Remove Extra Spaces</button>
+                        <button class="btn" onclick="transformText('removeLineBreaks')">Remove Line Breaks</button>
+                        <button class="btn" onclick="transformText('removeEmptyLines')">Remove Empty Lines</button>
+                        <button class="btn" onclick="transformText('removePunctuation')">Remove Punctuation</button>
+                        <button class="btn" onclick="transformText('removeNumbers')">Remove Numbers</button>
+                        <button class="btn" onclick="transformText('removeSpecialChars')">Remove Special Chars</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h4>🔄 Text Manipulation</h4>
+                    <div class="button-group">
+                        <button class="btn" onclick="transformText('reverse')">Reverse Text</button>
+                        <button class="btn" onclick="transformText('reverseWords')">Reverse Words</button>
+                        <button class="btn" onclick="transformText('shuffleWords')">Shuffle Words</button>
+                        <button class="btn" onclick="transformText('sortLines')">Sort Lines A-Z</button>
+                        <button class="btn" onclick="transformText('sortLinesDesc')">Sort Lines Z-A</button>
+                        <button class="btn" onclick="transformText('removeDuplicateLines')">Remove Duplicates</button>
+                        <button class="btn" onclick="transformText('randomizeLines')">Randomize Lines</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h4>🔗 Encoding & Decoding</h4>
+                    <div class="button-group">
+                        <button class="btn" onclick="transformText('urlEncode')">URL Encode</button>
+                        <button class="btn" onclick="transformText('urlDecode')">URL Decode</button>
+                        <button class="btn" onclick="transformText('htmlEncode')">HTML Encode</button>
+                        <button class="btn" onclick="transformText('htmlDecode')">HTML Decode</button>
+                        <button class="btn" onclick="transformText('base64Encode')">Base64 Encode</button>
+                        <button class="btn" onclick="transformText('base64Decode')">Base64 Decode</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h4>📐 Formatting</h4>
+                    <div class="button-group">
+                        <button class="btn" onclick="transformText('addLineNumbers')">Add Line Numbers</button>
+                        <button class="btn" onclick="transformText('addBulletPoints')">Add Bullet Points</button>
+                        <button class="btn" onclick="transformText('indent')">Indent Lines</button>
+                        <button class="btn" onclick="transformText('unindent')">Unindent Lines</button>
+                        <button class="btn" onclick="transformText('wrapInQuotes')">Wrap in Quotes</button>
+                        <button class="btn" onclick="transformText('csvFormat')">CSV Format</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h4>⚙️ Special Functions</h4>
+                    <div class="button-group">
+                        <button class="btn" onclick="transformText('slugify')">Slugify</button>
+                        <button class="btn" onclick="transformText('extractEmails')">Extract Emails</button>
+                        <button class="btn" onclick="transformText('extractUrls')">Extract URLs</button>
+                        <button class="btn" onclick="transformText('extractNumbers')">Extract Numbers</button>
+                        <button class="btn" onclick="transformText('wordWrap')">Word Wrap (80)</button>
+                        <button class="btn" onclick="transformText('countWords')">Word Frequency</button>
+                        <button class="btn secondary" onclick="clearAll()">🗑️ Clear All</button>
+                        <button class="btn danger" onclick="undoLast()">↶ Undo</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <h3>📊 Text Statistics</h3>
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number" id="char-count">0</span>
+                    <div class="stat-label">Characters</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="char-count-no-spaces">0</span>
+                    <div class="stat-label">Characters (no spaces)</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="word-count">0</span>
+                    <div class="stat-label">Words</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="line-count">0</span>
+                    <div class="stat-label">Lines</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="paragraph-count">0</span>
+                    <div class="stat-label">Paragraphs</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="sentence-count">0</span>
+                    <div class="stat-label">Sentences</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Text copied to clipboard!</div>
+
+    <script>
+        let lastInput = '';
+        let history = [];
+
+        const inputText = document.getElementById('input-text');
+        const outputText = document.getElementById('output-text');
+
+        // Update character counts and statistics
+        function updateStats() {
+            const text = inputText.value;
+            
+            // Character counts
+            document.getElementById('input-count').textContent = `${text.length} characters`;
+            document.getElementById('char-count').textContent = text.length;
+            document.getElementById('char-count-no-spaces').textContent = text.replace(/\s/g, '').length;
+            
+            // Word count
+            const words = text.trim() ? text.trim().split(/\s+/) : [];
+            document.getElementById('word-count').textContent = words.length;
+            
+            // Line count
+            const lines = text.split('\n');
+            document.getElementById('line-count').textContent = lines.length;
+            
+            // Paragraph count
+            const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+            document.getElementById('paragraph-count').textContent = paragraphs.length;
+            
+            // Sentence count
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            document.getElementById('sentence-count').textContent = sentences.length;
+        }
+
+        function updateOutputStats() {
+            const text = outputText.value;
+            document.getElementById('output-count').textContent = `${text.length} characters`;
+        }
+
+        // Text transformation functions
+        function transformText(type) {
+            const text = inputText.value;
+            if (!text.trim()) return;
+
+            // Save to history
+            history.push(text);
+            if (history.length > 10) history.shift();
+
+            let result = '';
+
+            switch (type) {
+                case 'uppercase':
+                    result = text.toUpperCase();
+                    break;
+                case 'lowercase':
+                    result = text.toLowerCase();
+                    break;
+                case 'titlecase':
+                    result = text.replace(/\w\S*/g, (txt) => 
+                        txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+                    break;
+                case 'camelcase':
+                    result = text.replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => 
+                        index === 0 ? word.toLowerCase() : word.toUpperCase()).replace(/\s+/g, '');
+                    break;
+                case 'pascalcase':
+                    result = text.replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => 
+                        word.toUpperCase()).replace(/\s+/g, '');
+                    break;
+                case 'snakecase':
+                    result = text.toLowerCase().replace(/\s+/g, '_');
+                    break;
+                case 'kebabcase':
+                    result = text.toLowerCase().replace(/\s+/g, '-');
+                    break;
+                case 'alternating':
+                    result = text.split('').map((char, i) => 
+                        i % 2 === 0 ? char.toLowerCase() : char.toUpperCase()).join('');
+                    break;
+                case 'trim':
+                    result = text.trim();
+                    break;
+                case 'removeExtraSpaces':
+                    result = text.replace(/\s+/g, ' ').trim();
+                    break;
+                case 'removeLineBreaks':
+                    result = text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+                    break;
+                case 'removeEmptyLines':
+                    result = text.split('\n').filter(line => line.trim()).join('\n');
+                    break;
+                case 'removePunctuation':
+                    result = text.replace(/[^\w\s]/g, '');
+                    break;
+                case 'removeNumbers':
+                    result = text.replace(/\d+/g, '');
+                    break;
+                case 'removeSpecialChars':
+                    result = text.replace(/[^a-zA-Z0-9\s]/g, '');
+                    break;
+                case 'reverse':
+                    result = text.split('').reverse().join('');
+                    break;
+                case 'reverseWords':
+                    result = text.split(' ').reverse().join(' ');
+                    break;
+                case 'shuffleWords':
+                    const words = text.split(' ');
+                    for (let i = words.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [words[i], words[j]] = [words[j], words[i]];
+                    }
+                    result = words.join(' ');
+                    break;
+                case 'sortLines':
+                    result = text.split('\n').sort().join('\n');
+                    break;
+                case 'sortLinesDesc':
+                    result = text.split('\n').sort().reverse().join('\n');
+                    break;
+                case 'removeDuplicateLines':
+                    result = [...new Set(text.split('\n'))].join('\n');
+                    break;
+                case 'randomizeLines':
+                    const lines = text.split('\n');
+                    for (let i = lines.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [lines[i], lines[j]] = [lines[j], lines[i]];
+                    }
+                    result = lines.join('\n');
+                    break;
+                case 'urlEncode':
+                    result = encodeURIComponent(text);
+                    break;
+                case 'urlDecode':
+                    try {
+                        result = decodeURIComponent(text);
+                    } catch (e) {
+                        result = 'Invalid URL encoding';
+                    }
+                    break;
+                case 'htmlEncode':
+                    result = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                    break;
+                case 'htmlDecode':
+                    result = text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+                        .replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+                    break;
+                case 'base64Encode':
+                    try {
+                        result = btoa(unescape(encodeURIComponent(text)));
+                    } catch (e) {
+                        result = 'Error encoding to Base64';
+                    }
+                    break;
+                case 'base64Decode':
+                    try {
+                        result = decodeURIComponent(escape(atob(text)));
+                    } catch (e) {
+                        result = 'Invalid Base64 encoding';
+                    }
+                    break;
+                case 'addLineNumbers':
+                    result = text.split('\n').map((line, i) => `${i + 1}. ${line}`).join('\n');
+                    break;
+                case 'addBulletPoints':
+                    result = text.split('\n').map(line => line.trim() ? `• ${line}` : line).join('\n');
+                    break;
+                case 'indent':
+                    result = text.split('\n').map(line => `    ${line}`).join('\n');
+                    break;
+                case 'unindent':
+                    result = text.split('\n').map(line => line.replace(/^    /, '')).join('\n');
+                    break;
+                case 'wrapInQuotes':
+                    result = text.split('\n').map(line => line.trim() ? `"${line}"` : line).join('\n');
+                    break;
+                case 'csvFormat':
+                    result = text.split('\n').map(line => 
+                        line.split(/\s+/).map(word => `"${word}"`).join(',')).join('\n');
+                    break;
+                case 'slugify':
+                    result = text.toLowerCase()
+                        .replace(/[^\w\s-]/g, '')
+                        .replace(/[\s_-]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                    break;
+                case 'extractEmails':
+                    const emails = text.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g);
+                    result = emails ? emails.join('\n') : 'No emails found';
+                    break;
+                case 'extractUrls':
+                    const urls = text.match(/https?:\/\/[^\s]+/g);
+                    result = urls ? urls.join('\n') : 'No URLs found';
+                    break;
+                case 'extractNumbers':
+                    const numbers = text.match(/\d+(\.\d+)?/g);
+                    result = numbers ? numbers.join('\n') : 'No numbers found';
+                    break;
+                case 'wordWrap':
+                    result = text.replace(/(.{1,80})(\s+|$)/g, '$1\n').trim();
+                    break;
+                case 'countWords':
+                    const wordCount = {};
+                    text.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).forEach(word => {
+                        if (word) wordCount[word] = (wordCount[word] || 0) + 1;
+                    });
+                    result = Object.entries(wordCount)
+                        .sort(([,a], [,b]) => b - a)
+                        .map(([word, count]) => `${word}: ${count}`)
+                        .join('\n');
+                    break;
+            }
+
+            outputText.value = result;
+            updateOutputStats();
+        }
+
+        function clearAll() {
+            inputText.value = '';
+            outputText.value = '';
+            updateStats();
+            updateOutputStats();
+        }
+
+        function undoLast() {
+            if (history.length > 0) {
+                inputText.value = history.pop();
+                updateStats();
+            }
+        }
+
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            element.select();
+            element.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Event listeners
+        inputText.addEventListener('input', updateStats);
+        outputText.addEventListener('input', updateOutputStats);
+
+        // Initialize
+        updateStats();
+        updateOutputStats();
+    </script>
+</body>
+</html>
