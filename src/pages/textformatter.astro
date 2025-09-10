@@ -1,7 +1,11 @@
 ---
-// textformatter.astro
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 ---
 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -15,661 +19,672 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
+            background: white;
+            border-radius: 15px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #2337FF;
             color: white;
-            padding: 30px;
             text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+            padding: 25px;
+            font-size: 24px;
+            font-weight: 600;
         }
 
         .main-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            padding: 30px;
+            gap: 0;
+            min-height: 600px;
         }
 
-        .text-area-container {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .text-area-header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .text-area-label {
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: #333;
-        }
-
-        .char-count {
-            font-size: 0.9rem;
-            color: #666;
-            margin-left: auto;
-        }
-
-        textarea {
-            width: 100%;
-            height: 400px;
-            padding: 20px;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            resize: vertical;
-            transition: all 0.3s ease;
-            background: #fafafa;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background: white;
-        }
-
-        .controls {
-            grid-column: 1 / -1;
+        .controls-panel {
             background: #f8f9fa;
-            padding: 30px;
-            border-radius: 15px;
-            margin-top: 20px;
+            padding: 25px;
+            border-right: 1px solid #e9ecef;
+            overflow-y: auto;
         }
 
-        .controls h3 {
-            margin-bottom: 20px;
-            color: #333;
-            font-size: 1.3rem;
-        }
-
-        .control-sections {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-        }
-
-        .control-section {
+        .preview-panel {
+            padding: 25px;
             background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
-        .control-section h4 {
-            margin-bottom: 15px;
-            color: #555;
-            font-size: 1rem;
+        .control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #2337FF;
+        }
+
+        .control-group h3 {
+            color: #2337FF;
+            margin-bottom: 12px;
+            font-size: 14px;
             font-weight: 600;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .button-group {
+        .control-row {
             display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
-            gap: 8px;
         }
 
         .btn {
             padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
+            border: 2px solid #2337FF;
+            background: white;
+            color: #2337FF;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
-            transition: all 0.2s ease;
-            background: #667eea;
-            color: white;
-            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 60px;
         }
 
         .btn:hover {
-            background: #5a6fd8;
+            background: #2337FF;
+            color: white;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        .btn.secondary {
-            background: #6c757d;
-        }
-
-        .btn.secondary:hover {
-            background: #5a6268;
-        }
-
-        .btn.danger {
-            background: #dc3545;
-        }
-
-        .btn.danger:hover {
-            background: #c82333;
-        }
-
-        .stats {
-            grid-column: 1 / -1;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        .btn.active {
+            background: #2337FF;
             color: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin-top: 20px;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-            text-align: center;
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 10px;
         }
 
-        .stat-item {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
-            border-radius: 10px;
-            backdrop-filter: blur(5px);
-        }
-
-        .stat-number {
-            font-size: 1.8rem;
-            font-weight: 700;
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
+        .input-group label {
             font-size: 12px;
-            opacity: 0;
-            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #333;
         }
 
-        .text-area-container {
+        input, select, textarea {
+            padding: 8px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2337FF;
+        }
+
+        .color-input {
+            width: 50px;
+            height: 35px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .range-input {
+            width: 100%;
+        }
+
+        .range-value {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .preview-area {
+            min-height: 200px;
+            padding: 20px;
+            border: 2px dashed #e9ecef;
+            border-radius: 8px;
+            background: #fafafa;
+            word-wrap: break-word;
             position: relative;
         }
 
-        .text-area-container:hover .copy-btn {
-            opacity: 1;
+        .preview-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333;
         }
 
-        .copy-btn:hover {
-            background: #218838;
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
         }
 
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-                padding: 20px;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .control-sections {
-                grid-template-columns: 1fr;
-            }
-
-            textarea {
-                height: 250px;
-            }
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            flex: 1;
         }
 
-        .toast {
+        .primary-btn {
+            background: #2337FF;
+            color: white;
+        }
+
+        .primary-btn:hover {
+            background: #1a2acc;
+            transform: translateY(-1px);
+        }
+
+        .secondary-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .secondary-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .notification {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: #28a745;
+            background: #2337FF;
             color: white;
             padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: 500;
+            border-radius: 5px;
             transform: translateX(100%);
             transition: transform 0.3s ease;
             z-index: 1000;
         }
 
-        .toast.show {
+        .notification.show {
             transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-panel {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+            
+            .control-row {
+                flex-direction: column;
+            }
+            
+            .btn {
+                flex: none;
+            }
+            
+            body {
+                padding: 10px;
+            }
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .three-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .four-col {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔧 Advanced Text Formatter</h1>
-            <p>Transform, clean, and format your text with powerful tools</p>
+            Advanced Text Formatter
         </div>
-
+        
         <div class="main-content">
-            <div class="text-area-container">
-                <div class="text-area-header">
-                    <div class="text-area-label">📝 Input Text</div>
-                    <div class="char-count" id="input-count">0 characters</div>
+            <div class="controls-panel">
+                <!-- Text Input -->
+                <div class="control-group">
+                    <h3>Text Input</h3>
+                    <textarea class="text-input" id="textInput" placeholder="Enter your text here...">Welcome to the Advanced Text Formatter! This tool allows you to format and style your text in many different ways.</textarea>
                 </div>
-                <textarea id="input-text" placeholder="Paste or type your text here..."></textarea>
-                <button class="copy-btn" onclick="copyToClipboard('input-text')">📋 Copy</button>
+
+                <!-- Basic Formatting -->
+                <div class="control-group">
+                    <h3>Basic Formatting</h3>
+                    <div class="control-row four-col">
+                        <button class="btn" id="boldBtn">Bold</button>
+                        <button class="btn" id="italicBtn">Italic</button>
+                        <button class="btn" id="underlineBtn">Underline</button>
+                        <button class="btn" id="strikeBtn">Strike</button>
+                    </div>
+                </div>
+
+                <!-- Text Alignment -->
+                <div class="control-group">
+                    <h3>Text Alignment</h3>
+                    <div class="control-row four-col">
+                        <button class="btn" id="leftAlign">Left</button>
+                        <button class="btn" id="centerAlign">Center</button>
+                        <button class="btn" id="rightAlign">Right</button>
+                        <button class="btn" id="justifyAlign">Justify</button>
+                    </div>
+                </div>
+
+                <!-- Font Settings -->
+                <div class="control-group">
+                    <h3>Font Settings</h3>
+                    <div class="input-group">
+                        <label>Font Family</label>
+                        <select id="fontFamily">
+                            <option value="Arial, sans-serif">Arial</option>
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="'Times New Roman', serif">Times New Roman</option>
+                            <option value="'Courier New', monospace">Courier New</option>
+                            <option value="Verdana, sans-serif">Verdana</option>
+                            <option value="Helvetica, sans-serif">Helvetica</option>
+                            <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+                            <option value="Impact, sans-serif">Impact</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Font Size</label>
+                        <input type="range" class="range-input" id="fontSize" min="8" max="72" value="16">
+                        <div class="range-value" id="fontSizeValue">16px</div>
+                    </div>
+                </div>
+
+                <!-- Colors -->
+                <div class="control-group">
+                    <h3>Colors</h3>
+                    <div class="two-col">
+                        <div class="input-group">
+                            <label>Text Color</label>
+                            <input type="color" class="color-input" id="textColor" value="#000000">
+                        </div>
+                        <div class="input-group">
+                            <label>Background Color</label>
+                            <input type="color" class="color-input" id="bgColor" value="#ffffff">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Transform -->
+                <div class="control-group">
+                    <h3>Text Transform</h3>
+                    <div class="control-row three-col">
+                        <button class="btn" id="upperCase">UPPER</button>
+                        <button class="btn" id="lowerCase">lower</button>
+                        <button class="btn" id="capitalCase">Title</button>
+                    </div>
+                </div>
+
+                <!-- Advanced Styling -->
+                <div class="control-group">
+                    <h3>Advanced Styling</h3>
+                    <div class="input-group">
+                        <label>Letter Spacing</label>
+                        <input type="range" class="range-input" id="letterSpacing" min="-5" max="20" value="0">
+                        <div class="range-value" id="letterSpacingValue">0px</div>
+                    </div>
+                    <div class="input-group">
+                        <label>Line Height</label>
+                        <input type="range" class="range-input" id="lineHeight" min="0.5" max="3" step="0.1" value="1.5">
+                        <div class="range-value" id="lineHeightValue">1.5</div>
+                    </div>
+                    <div class="control-row two-col">
+                        <button class="btn" id="shadowBtn">Text Shadow</button>
+                        <button class="btn" id="gradientBtn">Gradient</button>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="action-btn primary-btn" id="copyBtn">Copy Text</button>
+                    <button class="action-btn secondary-btn" id="resetBtn">Reset All</button>
+                </div>
             </div>
 
-            <div class="text-area-container">
-                <div class="text-area-header">
-                    <div class="text-area-label">✨ Output Text</div>
-                    <div class="char-count" id="output-count">0 characters</div>
+            <div class="preview-panel">
+                <h3 style="color: #2337FF; margin-bottom: 15px;">Live Preview</h3>
+                <div class="preview-area">
+                    <div class="preview-text" id="previewText">Welcome to the Advanced Text Formatter! This tool allows you to format and style your text in many different ways.</div>
                 </div>
-                <textarea id="output-text" placeholder="Formatted text will appear here..." readonly></textarea>
-                <button class="copy-btn" onclick="copyToClipboard('output-text')">📋 Copy</button>
-            </div>
-        </div>
-
-        <div class="controls">
-            <h3>🛠️ Formatting Tools</h3>
-            <div class="control-sections">
-                <div class="control-section">
-                    <h4>📝 Case Conversion</h4>
-                    <div class="button-group">
-                        <button class="btn" onclick="transformText('uppercase')">UPPERCASE</button>
-                        <button class="btn" onclick="transformText('lowercase')">lowercase</button>
-                        <button class="btn" onclick="transformText('titlecase')">Title Case</button>
-                        <button class="btn" onclick="transformText('camelcase')">camelCase</button>
-                        <button class="btn" onclick="transformText('pascalcase')">PascalCase</button>
-                        <button class="btn" onclick="transformText('snakecase')">snake_case</button>
-                        <button class="btn" onclick="transformText('kebabcase')">kebab-case</button>
-                        <button class="btn" onclick="transformText('alternating')">aLtErNaTiNg</button>
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h4>🧹 Text Cleaning</h4>
-                    <div class="button-group">
-                        <button class="btn" onclick="transformText('trim')">Trim Spaces</button>
-                        <button class="btn" onclick="transformText('removeExtraSpaces')">Remove Extra Spaces</button>
-                        <button class="btn" onclick="transformText('removeLineBreaks')">Remove Line Breaks</button>
-                        <button class="btn" onclick="transformText('removeEmptyLines')">Remove Empty Lines</button>
-                        <button class="btn" onclick="transformText('removePunctuation')">Remove Punctuation</button>
-                        <button class="btn" onclick="transformText('removeNumbers')">Remove Numbers</button>
-                        <button class="btn" onclick="transformText('removeSpecialChars')">Remove Special Chars</button>
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h4>🔄 Text Manipulation</h4>
-                    <div class="button-group">
-                        <button class="btn" onclick="transformText('reverse')">Reverse Text</button>
-                        <button class="btn" onclick="transformText('reverseWords')">Reverse Words</button>
-                        <button class="btn" onclick="transformText('shuffleWords')">Shuffle Words</button>
-                        <button class="btn" onclick="transformText('sortLines')">Sort Lines A-Z</button>
-                        <button class="btn" onclick="transformText('sortLinesDesc')">Sort Lines Z-A</button>
-                        <button class="btn" onclick="transformText('removeDuplicateLines')">Remove Duplicates</button>
-                        <button class="btn" onclick="transformText('randomizeLines')">Randomize Lines</button>
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h4>🔗 Encoding & Decoding</h4>
-                    <div class="button-group">
-                        <button class="btn" onclick="transformText('urlEncode')">URL Encode</button>
-                        <button class="btn" onclick="transformText('urlDecode')">URL Decode</button>
-                        <button class="btn" onclick="transformText('htmlEncode')">HTML Encode</button>
-                        <button class="btn" onclick="transformText('htmlDecode')">HTML Decode</button>
-                        <button class="btn" onclick="transformText('base64Encode')">Base64 Encode</button>
-                        <button class="btn" onclick="transformText('base64Decode')">Base64 Decode</button>
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h4>📐 Formatting</h4>
-                    <div class="button-group">
-                        <button class="btn" onclick="transformText('addLineNumbers')">Add Line Numbers</button>
-                        <button class="btn" onclick="transformText('addBulletPoints')">Add Bullet Points</button>
-                        <button class="btn" onclick="transformText('indent')">Indent Lines</button>
-                        <button class="btn" onclick="transformText('unindent')">Unindent Lines</button>
-                        <button class="btn" onclick="transformText('wrapInQuotes')">Wrap in Quotes</button>
-                        <button class="btn" onclick="transformText('csvFormat')">CSV Format</button>
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h4>⚙️ Special Functions</h4>
-                    <div class="button-group">
-                        <button class="btn" onclick="transformText('slugify')">Slugify</button>
-                        <button class="btn" onclick="transformText('extractEmails')">Extract Emails</button>
-                        <button class="btn" onclick="transformText('extractUrls')">Extract URLs</button>
-                        <button class="btn" onclick="transformText('extractNumbers')">Extract Numbers</button>
-                        <button class="btn" onclick="transformText('wordWrap')">Word Wrap (80)</button>
-                        <button class="btn" onclick="transformText('countWords')">Word Frequency</button>
-                        <button class="btn secondary" onclick="clearAll()">🗑️ Clear All</button>
-                        <button class="btn danger" onclick="undoLast()">↶ Undo</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="stats">
-            <h3>📊 Text Statistics</h3>
-            <div class="stats-grid" id="stats-grid">
-                <div class="stat-item">
-                    <span class="stat-number" id="char-count">0</span>
-                    <div class="stat-label">Characters</div>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number" id="char-count-no-spaces">0</span>
-                    <div class="stat-label">Characters (no spaces)</div>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number" id="word-count">0</span>
-                    <div class="stat-label">Words</div>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number" id="line-count">0</span>
-                    <div class="stat-label">Lines</div>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number" id="paragraph-count">0</span>
-                    <div class="stat-label">Paragraphs</div>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number" id="sentence-count">0</span>
-                    <div class="stat-label">Sentences</div>
+                
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #2337FF; margin-bottom: 10px;">CSS Output</h4>
+                    <textarea id="cssOutput" style="width: 100%; height: 200px; font-family: 'Courier New', monospace; font-size: 12px; resize: vertical;" readonly></textarea>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="toast" id="toast">Text copied to clipboard!</div>
+    <div class="notification" id="notification">Text copied to clipboard!</div>
 
     <script>
-        let lastInput = '';
-        let history = [];
-
-        const inputText = document.getElementById('input-text');
-        const outputText = document.getElementById('output-text');
-
-        // Update character counts and statistics
-        function updateStats() {
-            const text = inputText.value;
-            
-            // Character counts
-            document.getElementById('input-count').textContent = `${text.length} characters`;
-            document.getElementById('char-count').textContent = text.length;
-            document.getElementById('char-count-no-spaces').textContent = text.replace(/\s/g, '').length;
-            
-            // Word count
-            const words = text.trim() ? text.trim().split(/\s+/) : [];
-            document.getElementById('word-count').textContent = words.length;
-            
-            // Line count
-            const lines = text.split('\n');
-            document.getElementById('line-count').textContent = lines.length;
-            
-            // Paragraph count
-            const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
-            document.getElementById('paragraph-count').textContent = paragraphs.length;
-            
-            // Sentence count
-            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-            document.getElementById('sentence-count').textContent = sentences.length;
-        }
-
-        function updateOutputStats() {
-            const text = outputText.value;
-            document.getElementById('output-count').textContent = `${text.length} characters`;
-        }
-
-        // Text transformation functions
-        function transformText(type) {
-            const text = inputText.value;
-            if (!text.trim()) return;
-
-            // Save to history
-            history.push(text);
-            if (history.length > 10) history.shift();
-
-            let result = '';
-
-            switch (type) {
-                case 'uppercase':
-                    result = text.toUpperCase();
-                    break;
-                case 'lowercase':
-                    result = text.toLowerCase();
-                    break;
-                case 'titlecase':
-                    result = text.replace(/\w\S*/g, (txt) => 
-                        txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
-                    break;
-                case 'camelcase':
-                    result = text.replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => 
-                        index === 0 ? word.toLowerCase() : word.toUpperCase()).replace(/\s+/g, '');
-                    break;
-                case 'pascalcase':
-                    result = text.replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => 
-                        word.toUpperCase()).replace(/\s+/g, '');
-                    break;
-                case 'snakecase':
-                    result = text.toLowerCase().replace(/\s+/g, '_');
-                    break;
-                case 'kebabcase':
-                    result = text.toLowerCase().replace(/\s+/g, '-');
-                    break;
-                case 'alternating':
-                    result = text.split('').map((char, i) => 
-                        i % 2 === 0 ? char.toLowerCase() : char.toUpperCase()).join('');
-                    break;
-                case 'trim':
-                    result = text.trim();
-                    break;
-                case 'removeExtraSpaces':
-                    result = text.replace(/\s+/g, ' ').trim();
-                    break;
-                case 'removeLineBreaks':
-                    result = text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
-                    break;
-                case 'removeEmptyLines':
-                    result = text.split('\n').filter(line => line.trim()).join('\n');
-                    break;
-                case 'removePunctuation':
-                    result = text.replace(/[^\w\s]/g, '');
-                    break;
-                case 'removeNumbers':
-                    result = text.replace(/\d+/g, '');
-                    break;
-                case 'removeSpecialChars':
-                    result = text.replace(/[^a-zA-Z0-9\s]/g, '');
-                    break;
-                case 'reverse':
-                    result = text.split('').reverse().join('');
-                    break;
-                case 'reverseWords':
-                    result = text.split(' ').reverse().join(' ');
-                    break;
-                case 'shuffleWords':
-                    const words = text.split(' ');
-                    for (let i = words.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1));
-                        [words[i], words[j]] = [words[j], words[i]];
-                    }
-                    result = words.join(' ');
-                    break;
-                case 'sortLines':
-                    result = text.split('\n').sort().join('\n');
-                    break;
-                case 'sortLinesDesc':
-                    result = text.split('\n').sort().reverse().join('\n');
-                    break;
-                case 'removeDuplicateLines':
-                    result = [...new Set(text.split('\n'))].join('\n');
-                    break;
-                case 'randomizeLines':
-                    const lines = text.split('\n');
-                    for (let i = lines.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1));
-                        [lines[i], lines[j]] = [lines[j], lines[i]];
-                    }
-                    result = lines.join('\n');
-                    break;
-                case 'urlEncode':
-                    result = encodeURIComponent(text);
-                    break;
-                case 'urlDecode':
-                    try {
-                        result = decodeURIComponent(text);
-                    } catch (e) {
-                        result = 'Invalid URL encoding';
-                    }
-                    break;
-                case 'htmlEncode':
-                    result = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                    break;
-                case 'htmlDecode':
-                    result = text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-                        .replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-                    break;
-                case 'base64Encode':
-                    try {
-                        result = btoa(unescape(encodeURIComponent(text)));
-                    } catch (e) {
-                        result = 'Error encoding to Base64';
-                    }
-                    break;
-                case 'base64Decode':
-                    try {
-                        result = decodeURIComponent(escape(atob(text)));
-                    } catch (e) {
-                        result = 'Invalid Base64 encoding';
-                    }
-                    break;
-                case 'addLineNumbers':
-                    result = text.split('\n').map((line, i) => `${i + 1}. ${line}`).join('\n');
-                    break;
-                case 'addBulletPoints':
-                    result = text.split('\n').map(line => line.trim() ? `• ${line}` : line).join('\n');
-                    break;
-                case 'indent':
-                    result = text.split('\n').map(line => `    ${line}`).join('\n');
-                    break;
-                case 'unindent':
-                    result = text.split('\n').map(line => line.replace(/^    /, '')).join('\n');
-                    break;
-                case 'wrapInQuotes':
-                    result = text.split('\n').map(line => line.trim() ? `"${line}"` : line).join('\n');
-                    break;
-                case 'csvFormat':
-                    result = text.split('\n').map(line => 
-                        line.split(/\s+/).map(word => `"${word}"`).join(',')).join('\n');
-                    break;
-                case 'slugify':
-                    result = text.toLowerCase()
-                        .replace(/[^\w\s-]/g, '')
-                        .replace(/[\s_-]+/g, '-')
-                        .replace(/^-+|-+$/g, '');
-                    break;
-                case 'extractEmails':
-                    const emails = text.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g);
-                    result = emails ? emails.join('\n') : 'No emails found';
-                    break;
-                case 'extractUrls':
-                    const urls = text.match(/https?:\/\/[^\s]+/g);
-                    result = urls ? urls.join('\n') : 'No URLs found';
-                    break;
-                case 'extractNumbers':
-                    const numbers = text.match(/\d+(\.\d+)?/g);
-                    result = numbers ? numbers.join('\n') : 'No numbers found';
-                    break;
-                case 'wordWrap':
-                    result = text.replace(/(.{1,80})(\s+|$)/g, '$1\n').trim();
-                    break;
-                case 'countWords':
-                    const wordCount = {};
-                    text.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).forEach(word => {
-                        if (word) wordCount[word] = (wordCount[word] || 0) + 1;
-                    });
-                    result = Object.entries(wordCount)
-                        .sort(([,a], [,b]) => b - a)
-                        .map(([word, count]) => `${word}: ${count}`)
-                        .join('\n');
-                    break;
+        class TextFormatter {
+            constructor() {
+                this.textInput = document.getElementById('textInput');
+                this.previewText = document.getElementById('previewText');
+                this.cssOutput = document.getElementById('cssOutput');
+                this.currentStyles = {
+                    fontWeight: 'normal',
+                    fontStyle: 'normal',
+                    textDecoration: 'none',
+                    textAlign: 'left',
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '16px',
+                    color: '#000000',
+                    backgroundColor: '#ffffff',
+                    textTransform: 'none',
+                    letterSpacing: '0px',
+                    lineHeight: '1.5',
+                    textShadow: 'none'
+                };
+                this.init();
             }
 
-            outputText.value = result;
-            updateOutputStats();
-        }
+            init() {
+                this.bindEvents();
+                this.updatePreview();
+            }
 
-        function clearAll() {
-            inputText.value = '';
-            outputText.value = '';
-            updateStats();
-            updateOutputStats();
-        }
+            bindEvents() {
+                // Text input
+                this.textInput.addEventListener('input', () => this.updatePreview());
 
-        function undoLast() {
-            if (history.length > 0) {
-                inputText.value = history.pop();
-                updateStats();
+                // Basic formatting
+                document.getElementById('boldBtn').addEventListener('click', () => this.toggleBold());
+                document.getElementById('italicBtn').addEventListener('click', () => this.toggleItalic());
+                document.getElementById('underlineBtn').addEventListener('click', () => this.toggleUnderline());
+                document.getElementById('strikeBtn').addEventListener('click', () => this.toggleStrike());
+
+                // Alignment
+                document.getElementById('leftAlign').addEventListener('click', () => this.setAlignment('left'));
+                document.getElementById('centerAlign').addEventListener('click', () => this.setAlignment('center'));
+                document.getElementById('rightAlign').addEventListener('click', () => this.setAlignment('right'));
+                document.getElementById('justifyAlign').addEventListener('click', () => this.setAlignment('justify'));
+
+                // Font settings
+                document.getElementById('fontFamily').addEventListener('change', (e) => this.setFontFamily(e.target.value));
+                document.getElementById('fontSize').addEventListener('input', (e) => this.setFontSize(e.target.value));
+
+                // Colors
+                document.getElementById('textColor').addEventListener('input', (e) => this.setTextColor(e.target.value));
+                document.getElementById('bgColor').addEventListener('input', (e) => this.setBgColor(e.target.value));
+
+                // Text transform
+                document.getElementById('upperCase').addEventListener('click', () => this.setTextTransform('uppercase'));
+                document.getElementById('lowerCase').addEventListener('click', () => this.setTextTransform('lowercase'));
+                document.getElementById('capitalCase').addEventListener('click', () => this.setTextTransform('capitalize'));
+
+                // Advanced styling
+                document.getElementById('letterSpacing').addEventListener('input', (e) => this.setLetterSpacing(e.target.value));
+                document.getElementById('lineHeight').addEventListener('input', (e) => this.setLineHeight(e.target.value));
+                document.getElementById('shadowBtn').addEventListener('click', () => this.toggleTextShadow());
+                document.getElementById('gradientBtn').addEventListener('click', () => this.toggleGradient());
+
+                // Actions
+                document.getElementById('copyBtn').addEventListener('click', () => this.copyText());
+                document.getElementById('resetBtn').addEventListener('click', () => this.resetAll());
+            }
+
+            toggleBold() {
+                const btn = document.getElementById('boldBtn');
+                this.currentStyles.fontWeight = this.currentStyles.fontWeight === 'bold' ? 'normal' : 'bold';
+                btn.classList.toggle('active');
+                this.updatePreview();
+            }
+
+            toggleItalic() {
+                const btn = document.getElementById('italicBtn');
+                this.currentStyles.fontStyle = this.currentStyles.fontStyle === 'italic' ? 'normal' : 'italic';
+                btn.classList.toggle('active');
+                this.updatePreview();
+            }
+
+            toggleUnderline() {
+                const btn = document.getElementById('underlineBtn');
+                const isUnderlined = this.currentStyles.textDecoration.includes('underline');
+                if (isUnderlined) {
+                    this.currentStyles.textDecoration = this.currentStyles.textDecoration.replace('underline', '').trim();
+                } else {
+                    this.currentStyles.textDecoration += ' underline';
+                }
+                this.currentStyles.textDecoration = this.currentStyles.textDecoration.trim() || 'none';
+                btn.classList.toggle('active');
+                this.updatePreview();
+            }
+
+            toggleStrike() {
+                const btn = document.getElementById('strikeBtn');
+                const isStrikethrough = this.currentStyles.textDecoration.includes('line-through');
+                if (isStrikethrough) {
+                    this.currentStyles.textDecoration = this.currentStyles.textDecoration.replace('line-through', '').trim();
+                } else {
+                    this.currentStyles.textDecoration += ' line-through';
+                }
+                this.currentStyles.textDecoration = this.currentStyles.textDecoration.trim() || 'none';
+                btn.classList.toggle('active');
+                this.updatePreview();
+            }
+
+            setAlignment(align) {
+                document.querySelectorAll('[id$="Align"]').forEach(btn => btn.classList.remove('active'));
+                document.getElementById(align + 'Align').classList.add('active');
+                this.currentStyles.textAlign = align;
+                this.updatePreview();
+            }
+
+            setFontFamily(family) {
+                this.currentStyles.fontFamily = family;
+                this.updatePreview();
+            }
+
+            setFontSize(size) {
+                this.currentStyles.fontSize = size + 'px';
+                document.getElementById('fontSizeValue').textContent = size + 'px';
+                this.updatePreview();
+            }
+
+            setTextColor(color) {
+                this.currentStyles.color = color;
+                this.updatePreview();
+            }
+
+            setBgColor(color) {
+                this.currentStyles.backgroundColor = color;
+                this.updatePreview();
+            }
+
+            setTextTransform(transform) {
+                document.querySelectorAll('[id$="Case"]').forEach(btn => btn.classList.remove('active'));
+                if (this.currentStyles.textTransform === transform) {
+                    this.currentStyles.textTransform = 'none';
+                } else {
+                    this.currentStyles.textTransform = transform;
+                    document.getElementById(transform.replace('upper', 'upper').replace('lower', 'lower').replace('capitalize', 'capital') + 'Case').classList.add('active');
+                }
+                this.updatePreview();
+            }
+
+            setLetterSpacing(spacing) {
+                this.currentStyles.letterSpacing = spacing + 'px';
+                document.getElementById('letterSpacingValue').textContent = spacing + 'px';
+                this.updatePreview();
+            }
+
+            setLineHeight(height) {
+                this.currentStyles.lineHeight = height;
+                document.getElementById('lineHeightValue').textContent = height;
+                this.updatePreview();
+            }
+
+            toggleTextShadow() {
+                const btn = document.getElementById('shadowBtn');
+                if (this.currentStyles.textShadow === 'none') {
+                    this.currentStyles.textShadow = '2px 2px 4px rgba(0,0,0,0.3)';
+                    btn.classList.add('active');
+                } else {
+                    this.currentStyles.textShadow = 'none';
+                    btn.classList.remove('active');
+                }
+                this.updatePreview();
+            }
+
+            toggleGradient() {
+                const btn = document.getElementById('gradientBtn');
+                if (this.currentStyles.background && this.currentStyles.background.includes('gradient')) {
+                    delete this.currentStyles.background;
+                    delete this.currentStyles.webkitBackgroundClip;
+                    delete this.currentStyles.webkitTextFillColor;
+                    btn.classList.remove('active');
+                } else {
+                    this.currentStyles.background = 'linear-gradient(45deg, #2337FF, #00d4ff)';
+                    this.currentStyles.webkitBackgroundClip = 'text';
+                    this.currentStyles.webkitTextFillColor = 'transparent';
+                    btn.classList.add('active');
+                }
+                this.updatePreview();
+            }
+
+            updatePreview() {
+                const text = this.textInput.value || 'Enter your text to see the preview...';
+                this.previewText.textContent = text;
+                
+                // Apply styles
+                Object.keys(this.currentStyles).forEach(style => {
+                    if (style === 'webkitBackgroundClip') {
+                        this.previewText.style['-webkit-background-clip'] = this.currentStyles[style];
+                    } else if (style === 'webkitTextFillColor') {
+                        this.previewText.style['-webkit-text-fill-color'] = this.currentStyles[style];
+                    } else {
+                        this.previewText.style[style] = this.currentStyles[style];
+                    }
+                });
+
+                this.updateCSSOutput();
+            }
+
+            updateCSSOutput() {
+                let css = '.formatted-text {\n';
+                Object.keys(this.currentStyles).forEach(style => {
+                    const cssProperty = style.replace(/([A-Z])/g, '-$1').toLowerCase();
+                    if (style === 'webkitBackgroundClip') {
+                        css += `  -webkit-background-clip: ${this.currentStyles[style]};\n`;
+                    } else if (style === 'webkitTextFillColor') {
+                        css += `  -webkit-text-fill-color: ${this.currentStyles[style]};\n`;
+                    } else {
+                        css += `  ${cssProperty}: ${this.currentStyles[style]};\n`;
+                    }
+                });
+                css += '}';
+                this.cssOutput.value = css;
+            }
+
+            copyText() {
+                const textToCopy = this.textInput.value;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    this.showNotification('Text copied to clipboard!');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    this.showNotification('Text copied to clipboard!');
+                });
+            }
+
+            resetAll() {
+                // Reset styles
+                this.currentStyles = {
+                    fontWeight: 'normal',
+                    fontStyle: 'normal',
+                    textDecoration: 'none',
+                    textAlign: 'left',
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '16px',
+                    color: '#000000',
+                    backgroundColor: '#ffffff',
+                    textTransform: 'none',
+                    letterSpacing: '0px',
+                    lineHeight: '1.5',
+                    textShadow: 'none'
+                };
+
+                // Reset UI controls
+                document.querySelectorAll('.btn.active').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('leftAlign').classList.add('active');
+                document.getElementById('fontFamily').value = 'Arial, sans-serif';
+                document.getElementById('fontSize').value = 16;
+                document.getElementById('fontSizeValue').textContent = '16px';
+                document.getElementById('textColor').value = '#000000';
+                document.getElementById('bgColor').value = '#ffffff';
+                document.getElementById('letterSpacing').value = 0;
+                document.getElementById('letterSpacingValue').textContent = '0px';
+                document.getElementById('lineHeight').value = 1.5;
+                document.getElementById('lineHeightValue').textContent = '1.5';
+
+                this.updatePreview();
+                this.showNotification('All formatting reset!');
+            }
+
+            showNotification(message) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
             }
         }
 
-        function copyToClipboard(elementId) {
-            const element = document.getElementById(elementId);
-            element.select();
-            element.setSelectionRange(0, 99999);
-            document.execCommand('copy');
-            
-            const toast = document.getElementById('toast');
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        }
-
-        // Event listeners
-        inputText.addEventListener('input', updateStats);
-        outputText.addEventListener('input', updateOutputStats);
-
-        // Initialize
-        updateStats();
-        updateOutputStats();
+        // Initialize the formatter when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new TextFormatter();
+        });
     </script>
 </body>
 </html>
