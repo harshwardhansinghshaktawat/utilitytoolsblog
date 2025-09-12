@@ -1,20 +1,14 @@
 ---
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
-import Layout from '../layouts/BlogPost.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
 const title = "Free Astro Markdown Editor | Rich Content to Markdown Converter";
 const description = "Convert rich text content to Astro-compatible Markdown instantly. Professional WYSIWYG editor with tables, embeds, code blocks, and frontmatter support. Free online tool.";
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
-
-<Layout
-	title="Astro Markdown Editor"
-	description="Lorem ipsum dolor sit amet"
-	pubDate={new Date('August 08 2021')}
-	heroImage="/blog-placeholder-about.jpg"
->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -558,6 +552,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 </head>
 
 <body>
+<Header />
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-container">
@@ -1241,6 +1236,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             }
         });
     </script>
+<Footer />
 </body>
 </html>
 </Layout>
