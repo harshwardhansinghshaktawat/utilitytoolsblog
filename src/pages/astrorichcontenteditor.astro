@@ -9,6 +9,14 @@ const description = "Convert rich text content to Astro-compatible Markdown inst
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
+---
+import BaseHead from '../components/BaseHead.astro';
+
+const title = "Free Astro Markdown Editor | Rich Content to Markdown Converter";
+const description = "Convert rich text content to Astro-compatible Markdown instantly. Professional WYSIWYG editor with tables, embeds, code blocks, and frontmatter support. Free online tool.";
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -369,14 +377,17 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         .markdown-output {
-            background: var(--black);
-            color: var(--white);
+            background: var(--gray-900);
+            color: #e2e8f0;
             font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
             font-size: 14px;
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
             min-height: 400px;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--gray-700);
         }
 
         .stats-bar {
@@ -552,7 +563,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 </head>
 
 <body>
-<Header />
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-container">
@@ -1236,7 +1246,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             }
         });
     </script>
-<Footer />
 </body>
 </html>
 </Layout>
