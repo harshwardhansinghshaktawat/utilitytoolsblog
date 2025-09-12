@@ -35,10 +35,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.snow.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.min.js"></script>
     
-    <!-- Quill Table Module -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.table.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.table.min.js"></script>
-    
     <!-- Turndown for HTML to Markdown -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown-plugin-gfm.min.js"></script>
@@ -527,6 +523,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             transform: translateX(0);
         }
 
+        .loading-indicator {
+            color: var(--gray-400);
+            font-style: italic;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
@@ -555,6 +556,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 </head>
 
 <body>
+<Header />
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-container">
@@ -646,7 +648,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                         </button>
                     </div>
                     <div class="output-content">
-                        <div id="markdownOutput" class="markdown-output"></div>
+                        <div id="markdownOutput" class="markdown-output">
+                            <span class="loading-indicator">Loading editor...</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -766,207 +770,289 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <script is:inline>
         let quill;
         let frontmatter = '';
+        let turndownService = null;
 
-        // Initialize Quill editor with table support
-        document.addEventListener('DOMContentLoaded', function() {
-            // Register table module if available
-            if (window.Quill && window.QuillTable) {
-                Quill.register({'modules/table': QuillTable.TableModule});
-            }
-
-            // Quill configuration with proper table support
-            const toolbarOptions = [
-                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                ['bold', 'italic', 'underline', 'strike'],
-                [{ 'color': [] }, { 'background': [] }],
-                [{ 'script': 'sub'}, { 'script': 'super' }],
-                ['blockquote', 'code-block'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                [{ 'indent': '-1'}, { 'indent': '+1' }],
-                [{ 'align': [] }],
-                ['link', 'image', 'video'],
-                ['clean']
-            ];
-
-            quill = new Quill('#quill-editor', {
-                theme: 'snow',
-                modules: {
-                    toolbar: toolbarOptions
-                },
-                placeholder: 'Start writing your amazing content here...\n\nUse the toolbar above for formatting, or try the custom buttons for special features like tables, embeds and templates!'
-            });
-
-            // Set initial content
-            const initialContent = [
-                { insert: 'Welcome to the Astro Markdown Editor' },
-                { attributes: { header: 1 }, insert: '\n' },
-                { insert: '\nThis is a ' },
-                { attributes: { bold: true }, insert: 'powerful rich content editor' },
-                { insert: ' that converts your content to ' },
-                { attributes: { italic: true }, insert: 'Astro-compatible Markdown' },
-                { insert: ' in real-time!\n\n' },
-                { insert: 'Key Features' },
-                { attributes: { header: 2 }, insert: '\n' },
-                { insert: '\nFull-featured rich text editing with Quill.js' },
-                { attributes: { list: 'bullet' }, insert: '\n' },
-                { insert: 'Tables, images, links, and code blocks' },
-                { attributes: { list: 'bullet' }, insert: '\n' },
-                { insert: 'YouTube, Twitter, and other embeds' },
-                { attributes: { list: 'bullet' }, insert: '\n' },
-                { insert: 'Frontmatter support for Astro' },
-                { attributes: { list: 'bullet' }, insert: '\n' },
-                { insert: 'Real-time Markdown preview' },
-                { attributes: { list: 'bullet' }, insert: '\n' },
-                { insert: '\n' },
-                { insert: 'Try it out!' },
-                { attributes: { header: 3 }, insert: '\n' },
-                { insert: '\nStart typing, formatting, and watch the magic happen in the right panel. The Markdown output is ready to paste into your Astro project!\n\n' },
-                { insert: 'This is a code snippet: ' },
-                { attributes: { code: true }, insert: "console.log('Hello Astro!')" },
-                { insert: '\n\nAnd here\'s a blockquote:\n' },
-                { insert: '"The best way to get started is to quit talking and begin doing." - Walt Disney' },
-                { attributes: { blockquote: true }, insert: '\n' }
-            ];
-
-            quill.setContents({ ops: initialContent });
-
-            // Listen for content changes
-            quill.on('text-change', function() {
-                updateMarkdown();
-                updateWordCount();
-                updateLastModified();
-            });
-
-            // Initial conversion
-            updateMarkdown();
-            updateWordCount();
-            updateLastModified();
-        });
-
-        // Initialize Turndown converter
-        function initTurndown() {
-            const turndownService = new TurndownService({
-                headingStyle: 'atx',
-                codeBlockStyle: 'fenced',
-                bulletListMarker: '-'
-            });
-
-            // Add GFM plugin for table support
-            if (typeof TurndownPluginGfm !== 'undefined') {
-                turndownService.use(TurndownPluginGfm.tables);
-            }
-
-            // Custom rules for better Astro compatibility
-            turndownService.addRule('customCodeBlock', {
-                filter: 'pre',
-                replacement: function(content, node) {
-                    const codeElement = node.querySelector('code');
-                    const language = codeElement && codeElement.className ? 
-                        codeElement.className.replace('language-', '').replace('ql-syntax', '') || '' : '';
-                    return '\n\n```' + language + '\n' + content + '\n```\n\n';
+        // Wait for all libraries to load before initializing
+        function waitForLibraries(callback) {
+            let attempts = 0;
+            const maxAttempts = 50; // 5 seconds max wait time
+            
+            const checkLibraries = () => {
+                attempts++;
+                
+                if (typeof Quill !== 'undefined' && typeof TurndownService !== 'undefined') {
+                    console.log('All libraries loaded successfully');
+                    callback();
+                } else if (attempts >= maxAttempts) {
+                    console.error('Libraries failed to load within timeout');
+                    showFallbackMessage();
+                } else {
+                    setTimeout(checkLibraries, 100);
                 }
-            });
-
-            // Custom rule for embeds
-            turndownService.addRule('embeds', {
-                filter: function(node) {
-                    return node.classList && node.classList.contains('embed-container');
-                },
-                replacement: function(content, node) {
-                    const embedType = node.dataset.embedType;
-                    const embedUrl = node.dataset.embedUrl;
-                    const embedId = node.dataset.embedId;
-                    
-                    switch(embedType) {
-                        case 'youtube':
-                            return '\n\n<iframe width="560" height="315" src="https://www.youtube.com/embed/' + embedId + '" frameborder="0" allowfullscreen></iframe>\n\n';
-                        case 'twitter':
-                            return '\n\n<!-- Twitter Embed: ' + embedUrl + ' -->\n<!-- Remember to add Twitter script to your Astro layout -->\n\n';
-                        case 'codepen':
-                            return '\n\n<!-- CodePen Embed: ' + embedUrl + ' -->\n<!-- Remember to add CodePen script to your Astro layout -->\n\n';
-                        case 'iframe':
-                            return '\n\n<iframe src="' + embedUrl + '" width="100%" height="400" frameborder="0"></iframe>\n\n';
-                        default:
-                            return '\n\n<!-- Custom Embed -->\n\n';
-                    }
-                }
-            });
-
-            return turndownService;
+            };
+            
+            checkLibraries();
         }
 
+        function showFallbackMessage() {
+            const outputElement = document.getElementById('markdownOutput');
+            if (outputElement) {
+                outputElement.innerHTML = '<span class="loading-indicator">Failed to load editor libraries. Please refresh the page.</span>';
+            }
+        }
+
+        // Initialize Turndown service with proper configuration
+        function initTurndownService() {
+            try {
+                turndownService = new TurndownService({
+                    headingStyle: 'atx',
+                    hr: '---',
+                    bulletListMarker: '-',
+                    codeBlockStyle: 'fenced',
+                    fence: '```',
+                    emDelimiter: '*',
+                    strongDelimiter: '**',
+                    linkStyle: 'inlined',
+                    linkReferenceStyle: 'full'
+                });
+
+                // Add GFM plugin for table support
+                if (typeof TurndownPluginGfm !== 'undefined' && TurndownPluginGfm.tables) {
+                    turndownService.use(TurndownPluginGfm.tables);
+                    console.log('GFM tables plugin loaded');
+                }
+
+                // Custom rules for better static site generator compatibility
+                turndownService.addRule('lineBreaks', {
+                    filter: 'br',
+                    replacement: function () {
+                        return '\n';
+                    }
+                });
+
+                // Improved code block handling
+                turndownService.addRule('codeBlocks', {
+                    filter: function (node, options) {
+                        return node.nodeName === 'PRE' && node.firstChild && node.firstChild.nodeName === 'CODE';
+                    },
+                    replacement: function (content, node, options) {
+                        const codeElement = node.firstChild;
+                        const className = codeElement.getAttribute('class') || '';
+                        const language = className.replace(/.*language-(\w+).*/, '$1');
+                        const fence = options.fence || '```';
+                        
+                        return '\n\n' + fence + (language !== className ? language : '') + '\n' + 
+                               content.trim() + '\n' + fence + '\n\n';
+                    }
+                });
+
+                // Handle embeds more cleanly
+                turndownService.addRule('embeds', {
+                    filter: function (node) {
+                        return node.classList && node.classList.contains('embed-container');
+                    },
+                    replacement: function (content, node) {
+                        const embedType = node.dataset.embedType;
+                        const embedUrl = node.dataset.embedUrl;
+                        const embedId = node.dataset.embedId;
+                        
+                        switch(embedType) {
+                            case 'youtube':
+                                return '\n\n<iframe width="560" height="315" src="https://www.youtube.com/embed/' + embedId + '" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>\n\n';
+                            case 'twitter':
+                                return '\n\n<!-- Twitter Embed: ' + embedUrl + ' -->\n<!-- Add Twitter widgets.js script to your layout -->\n<blockquote class="twitter-tweet"><a href="' + embedUrl + '">' + embedUrl + '</a></blockquote>\n\n';
+                            case 'codepen':
+                                return '\n\n<!-- CodePen Embed: ' + embedUrl + ' -->\n<iframe height="400" style="width: 100%;" scrolling="no" src="' + embedUrl + '" frameborder="no" loading="lazy" allowtransparency="true" allowfullscreen="true"></iframe>\n\n';
+                            case 'github':
+                                return '\n\n<!-- GitHub Gist: ' + embedUrl + ' -->\n<script src="' + embedUrl + '.js"></script>\n\n';
+                            case 'vimeo':
+                                const vimeoId = embedUrl.match(/vimeo\.com\/(\d+)/);
+                                return vimeoId ? '\n\n<iframe src="https://player.vimeo.com/video/' + vimeoId[1] + '" width="640" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>\n\n' : '\n\n<!-- Vimeo: ' + embedUrl + ' -->\n\n';
+                            case 'iframe':
+                                return '\n\n<iframe src="' + embedUrl + '" width="100%" height="400" frameborder="0"></iframe>\n\n';
+                            default:
+                                return '\n\n<!-- Embed: ' + embedUrl + ' -->\n\n';
+                        }
+                    }
+                });
+
+                // Clean up empty paragraphs
+                turndownService.addRule('emptyParagraphs', {
+                    filter: function (node) {
+                        return node.nodeName === 'P' && !node.textContent.trim() && !node.querySelector('img, iframe, video');
+                    },
+                    replacement: function () {
+                        return '';
+                    }
+                });
+
+                console.log('Turndown service initialized successfully');
+                return true;
+            } catch (error) {
+                console.error('Failed to initialize Turndown service:', error);
+                return false;
+            }
+        }
+
+        // Initialize everything when DOM is ready and libraries are loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            waitForLibraries(function() {
+                if (!initTurndownService()) {
+                    showFallbackMessage();
+                    return;
+                }
+
+                // Initialize Quill editor
+                try {
+                    const toolbarOptions = [
+                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'script': 'sub'}, { 'script': 'super' }],
+                        ['blockquote', 'code-block'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],
+                        [{ 'align': [] }],
+                        ['link', 'image'],
+                        ['clean']
+                    ];
+
+                    quill = new Quill('#quill-editor', {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: toolbarOptions
+                        },
+                        placeholder: 'Start writing your amazing content here...\n\nUse the toolbar above for formatting, or try the custom buttons for special features like tables, embeds and templates!'
+                    });
+
+                    // Set initial content with better structure
+                    const initialContent = {
+                        "ops": [
+                            {"insert": "Welcome to the Astro Markdown Editor"},
+                            {"attributes": {"header": 1}, "insert": "\n"},
+                            {"insert": "\nThis is a "},
+                            {"attributes": {"bold": true}, "insert": "powerful rich content editor"},
+                            {"insert": " that converts your content to "},
+                            {"attributes": {"italic": true}, "insert": "Astro-compatible Markdown"},
+                            {"insert": " in real-time!\n\n"},
+                            {"insert": "Key Features"},
+                            {"attributes": {"header": 2}, "insert": "\n"},
+                            {"insert": "\nFull-featured rich text editing with Quill.js"},
+                            {"attributes": {"list": "bullet"}, "insert": "\n"},
+                            {"insert": "Tables, images, links, and code blocks"},
+                            {"attributes": {"list": "bullet"}, "insert": "\n"},
+                            {"insert": "YouTube, Twitter, and other embeds"},
+                            {"attributes": {"list": "bullet"}, "insert": "\n"},
+                            {"insert": "Frontmatter support for Astro"},
+                            {"attributes": {"list": "bullet"}, "insert": "\n"},
+                            {"insert": "Real-time Markdown preview"},
+                            {"attributes": {"list": "bullet"}, "insert": "\n"},
+                            {"insert": "Compatible with all static site generators"},
+                            {"attributes": {"list": "bullet"}, "insert": "\n"},
+                            {"insert": "\n"},
+                            {"insert": "Try it out!"},
+                            {"attributes": {"header": 3}, "insert": "\n"},
+                            {"insert": "\nStart typing, formatting, and watch the magic happen in the right panel. The Markdown output is ready to paste into your Astro project!\n\n"},
+                            {"insert": "This is a code snippet: "},
+                            {"attributes": {"code": true}, "insert": "console.log('Hello Astro!')"},
+                            {"insert": "\n\nAnd here's a blockquote:\n"},
+                            {"insert": "\"The best way to get started is to quit talking and begin doing.\" - Walt Disney"},
+                            {"attributes": {"blockquote": true}, "insert": "\n"}
+                        ]
+                    };
+
+                    quill.setContents(initialContent);
+
+                    // Listen for content changes with debouncing
+                    let updateTimeout;
+                    quill.on('text-change', function() {
+                        clearTimeout(updateTimeout);
+                        updateTimeout = setTimeout(function() {
+                            updateMarkdown();
+                            updateWordCount();
+                            updateLastModified();
+                        }, 300);
+                    });
+
+                    // Initial conversion
+                    setTimeout(function() {
+                        updateMarkdown();
+                        updateWordCount();
+                        updateLastModified();
+                    }, 500);
+
+                    console.log('Quill editor initialized successfully');
+                } catch (error) {
+                    console.error('Failed to initialize Quill editor:', error);
+                    showFallbackMessage();
+                }
+            });
+        });
+
         function updateMarkdown() {
-            if (!quill) {
-                console.log('Quill not initialized yet');
+            if (!quill || !turndownService) {
+                console.log('Editor or converter not ready');
                 return;
             }
             
-            console.log('Updating markdown...');
-            const html = quill.root.innerHTML;
-            console.log('HTML content:', html);
-            
-            const turndownService = new TurndownService({
-                headingStyle: 'atx',
-                codeBlockStyle: 'fenced',
-                bulletListMarker: '-'
-            });
-
-            // Add GFM plugin for table support if available
-            if (typeof TurndownPluginGfm !== 'undefined') {
-                turndownService.use(TurndownPluginGfm.tables);
-            }
-
-            let markdown = turndownService.turndown(html);
-            console.log('Generated markdown:', markdown);
-            
-            // Clean up extra line breaks
-            markdown = markdown.replace(/\n\n\n+/g, '\n\n');
-            
-            // Add frontmatter if exists
-            const finalMarkdown = frontmatter ? frontmatter + '\n' + markdown : markdown;
-            
-            const outputElement = document.getElementById('markdownOutput');
-            if (outputElement) {
-                outputElement.textContent = finalMarkdown;
-                console.log('Markdown updated in output element');
-            } else {
-                console.error('Output element not found!');
+            try {
+                const html = quill.root.innerHTML;
+                let markdown = turndownService.turndown(html);
+                
+                // Clean up the markdown
+                markdown = markdown
+                    .replace(/\n\n\n+/g, '\n\n')  // Remove excessive line breaks
+                    .replace(/^\n+/, '')          // Remove leading newlines
+                    .replace(/\n+$/, '\n');       // Ensure single trailing newline
+                
+                // Add frontmatter if exists
+                const finalMarkdown = frontmatter ? frontmatter + '\n' + markdown : markdown;
+                
+                const outputElement = document.getElementById('markdownOutput');
+                if (outputElement) {
+                    outputElement.textContent = finalMarkdown;
+                }
+            } catch (error) {
+                console.error('Error converting to markdown:', error);
+                const outputElement = document.getElementById('markdownOutput');
+                if (outputElement) {
+                    outputElement.innerHTML = '<span class="loading-indicator">Error converting to markdown. Please try again.</span>';
+                }
             }
         }
 
         function updateWordCount() {
-            if (!quill) {
-                console.log('Quill not initialized for word count');
-                return;
-            }
+            if (!quill) return;
             
-            const text = quill.getText();
-            const words = text.trim().split(/\s+/).filter(function(word) { 
-                return word.length > 0; 
-            }).length;
-            const characters = text.length;
-            
-            console.log('Word count:', words, 'Characters:', characters);
-            
-            const wordCountElement = document.getElementById('wordCount');
-            if (wordCountElement) {
-                wordCountElement.textContent = 'Words: ' + words + ' | Characters: ' + characters;
-            } else {
-                console.error('Word count element not found!');
+            try {
+                const text = quill.getText();
+                const words = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+                const characters = text.length;
+                
+                const wordCountElement = document.getElementById('wordCount');
+                if (wordCountElement) {
+                    wordCountElement.textContent = `Words: ${words} | Characters: ${characters}`;
+                }
+            } catch (error) {
+                console.error('Error updating word count:', error);
             }
         }
 
         function updateLastModified() {
-            const now = new Date().toLocaleTimeString();
-            const lastUpdatedElement = document.getElementById('lastUpdated');
-            if (lastUpdatedElement) {
-                lastUpdatedElement.textContent = now;
-            } else {
-                console.error('Last updated element not found!');
+            try {
+                const now = new Date().toLocaleTimeString();
+                const lastUpdatedElement = document.getElementById('lastUpdated');
+                if (lastUpdatedElement) {
+                    lastUpdatedElement.textContent = now;
+                }
+            } catch (error) {
+                console.error('Error updating last modified:', error);
             }
         }
 
         function insertTemplate(type) {
+            if (!quill) return;
+            
             let delta;
             
             if (type === 'blog') {
@@ -1043,8 +1129,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             updateMarkdown();
         }
 
-        // Add the insertTable function
         function insertTable() {
+            if (!quill) return;
+            
             const tableHTML = '<table>' +
                 '<thead>' +
                     '<tr>' +
@@ -1073,104 +1160,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             showToast('Table added successfully!');
         }
 
-        function insertYouTube() {
-            const url = prompt('Enter YouTube URL:');
-            if (url) {
-                const videoId = extractYouTubeId(url);
-                if (videoId) {
-                    const embedHTML = `<div class="embed-container" data-embed-type="youtube" data-embed-id="${videoId}" data-embed-url="${url}">
-                        <p>📺 YouTube Video: ${url}</p>
-                        <p><em>This will be converted to an iframe in the markdown output</em></p>
-                    </div>`;
-                    
-                    const range = quill.getSelection() || { index: quill.getLength() };
-                    quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
-                    updateMarkdown();
-                } else {
-                    showToast('Invalid YouTube URL');
-                }
-            }
-        }
-
-        function insertTwitter() {
-            const url = prompt('Enter Twitter post URL:');
-            if (url) {
-                const embedHTML = `<div class="embed-container" data-embed-type="twitter" data-embed-url="${url}">
-                    <p>🐦 Twitter Post: ${url}</p>
-                    <p><em>This will be converted to a Twitter embed in the markdown output</em></p>
-                </div>`;
-                
-                const range = quill.getSelection() || { index: quill.getLength() };
-                quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
-                updateMarkdown();
-            }
-        }
-
-        function insertCodePen() {
-            const url = prompt('Enter CodePen URL:');
-            if (url) {
-                const embedHTML = `<div class="embed-container" data-embed-type="codepen" data-embed-url="${url}">
-                    <p>💻 CodePen: ${url}</p>
-                    <p><em>This will be converted to a CodePen embed in the markdown output</em></p>
-                </div>`;
-                
-                const range = quill.getSelection() || { index: quill.getLength() };
-                quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
-                updateMarkdown();
-            }
-        }
-
-        function insertCallout(type) {
-            const text = prompt(`Enter ${type} message:`);
-            if (text) {
-                const icons = { info: 'ℹ️', warning: '⚠️', tip: '💡' };
-                const colors = { 
-                    info: 'background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px;', 
-                    warning: 'background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px;',
-                    tip: 'background: #d1fae5; border-left: 4px solid #10b981; padding: 15px;'
-                };
-                
-                const calloutHTML = `<div class="callout" data-callout-type="${type}" style="${colors[type]}">
-                    <p><strong>${icons[type]} ${type.charAt(0).toUpperCase() + type.slice(1)}</strong></p>
-                    <p>${text}</p>
-                </div>`;
-                
-                const range = quill.getSelection() || { index: quill.getLength() };
-                quill.clipboard.dangerouslyPasteHTML(range.index, calloutHTML);
-                updateMarkdown();
-            }
-        }
-
-        function insertFootnote() {
-            const text = prompt('Enter footnote text:');
-            if (text) {
-                const footnoteNum = Date.now().toString().slice(-4);
-                const footnoteHTML = `<sup><a href="#fn${footnoteNum}" id="ref${footnoteNum}">${footnoteNum}</a></sup>`;
-                
-                const range = quill.getSelection() || { index: quill.getLength() };
-                quill.clipboard.dangerouslyPasteHTML(range.index, footnoteHTML);
-                
-                // Add footnote at the end
-                const currentLength = quill.getLength();
-                quill.clipboard.dangerouslyPasteHTML(currentLength, 
-                    `\n\n<p id="fn${footnoteNum}"><small>${footnoteNum}. ${text} <a href="#ref${footnoteNum}">↩</a></small></p>`);
-                
-                updateMarkdown();
-            }
-        }
-
-        function insertTOC() {
-            const tocHTML = `<div class="toc">
-                <p><strong>📑 Table of Contents</strong></p>
-                <p><em>This will be automatically generated based on your headings</em></p>
-            </div>`;
-            
-            const range = quill.getSelection() || { index: quill.getLength() };
-            quill.clipboard.dangerouslyPasteHTML(range.index, tocHTML);
-            updateMarkdown();
-        }
-
         function clearEditor() {
+            if (!quill) return;
+            
             if (confirm('Are you sure you want to clear all content?')) {
                 quill.setText('');
                 frontmatter = '';
@@ -1206,17 +1198,15 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             const draft = document.getElementById('fmDraft').value;
             
             let fm = '---\n';
-            if (title) fm += 'title: "' + title + '"\n';
-            if (description) fm += 'description: "' + description + '"\n';
-            if (author) fm += 'author: "' + author + '"\n';
-            if (date) fm += 'pubDate: "' + date + '"\n';
+            if (title) fm += `title: "${title}"\n`;
+            if (description) fm += `description: "${description}"\n`;
+            if (author) fm += `author: "${author}"\n`;
+            if (date) fm += `pubDate: "${date}"\n`;
             if (tags) {
-                const tagArray = tags.split(',').map(function(tag) {
-                    return '"' + tag.trim() + '"';
-                }).join(', ');
-                fm += 'tags: [' + tagArray + ']\n';
+                const tagArray = tags.split(',').map(tag => `"${tag.trim()}"`).join(', ');
+                fm += `tags: [${tagArray}]\n`;
             }
-            fm += 'draft: ' + draft + '\n';
+            fm += `draft: ${draft}\n`;
             fm += '---';
             
             frontmatter = fm;
@@ -1235,33 +1225,49 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             const type = document.getElementById('embedType').value;
             const url = document.getElementById('embedURL').value;
             
-            if (!url) return;
+            if (!url) {
+                showToast('Please enter a valid URL');
+                return;
+            }
             
             let embedHTML = '';
             
             if (type === 'youtube') {
                 const videoId = extractYouTubeId(url);
                 if (videoId) {
-                    embedHTML = '<div class="embed-container" data-embed-type="youtube" data-embed-id="' + videoId + '" data-embed-url="' + url + '">' +
-                        '<p>📺 YouTube Video: ' + url + '</p>' +
-                        '<p><em>This will be converted to an iframe in the markdown output</em></p>' +
-                    '</div>';
+                    embedHTML = `<div class="embed-container" data-embed-type="youtube" data-embed-id="${videoId}" data-embed-url="${url}">
+                        <p>📺 YouTube Video: ${url}</p>
+                        <p><em>This will be converted to an iframe in the markdown output</em></p>
+                    </div>`;
+                } else {
+                    showToast('Invalid YouTube URL');
+                    return;
                 }
             } else if (type === 'twitter') {
-                embedHTML = '<div class="embed-container" data-embed-type="twitter" data-embed-url="' + url + '">' +
-                    '<p>🐦 Twitter Post: ' + url + '</p>' +
-                    '<p><em>This will be converted to a Twitter embed in the markdown output</em></p>' +
-                '</div>';
+                embedHTML = `<div class="embed-container" data-embed-type="twitter" data-embed-url="${url}">
+                    <p>🐦 Twitter Post: ${url}</p>
+                    <p><em>This will be converted to a Twitter embed in the markdown output</em></p>
+                </div>`;
             } else if (type === 'codepen') {
-                embedHTML = '<div class="embed-container" data-embed-type="codepen" data-embed-url="' + url + '">' +
-                    '<p>💻 CodePen: ' + url + '</p>' +
-                    '<p><em>This will be converted to a CodePen embed in the markdown output</em></p>' +
-                '</div>';
+                embedHTML = `<div class="embed-container" data-embed-type="codepen" data-embed-url="${url}">
+                    <p>💻 CodePen: ${url}</p>
+                    <p><em>This will be converted to a CodePen embed in the markdown output</em></p>
+                </div>`;
+            } else if (type === 'vimeo') {
+                embedHTML = `<div class="embed-container" data-embed-type="vimeo" data-embed-url="${url}">
+                    <p>🎬 Vimeo Video: ${url}</p>
+                    <p><em>This will be converted to a Vimeo embed in the markdown output</em></p>
+                </div>`;
+            } else if (type === 'github') {
+                embedHTML = `<div class="embed-container" data-embed-type="github" data-embed-url="${url}">
+                    <p>💻 GitHub Gist: ${url}</p>
+                    <p><em>This will be converted to a GitHub embed in the markdown output</em></p>
+                </div>`;
             } else if (type === 'iframe') {
-                embedHTML = '<div class="embed-container" data-embed-type="iframe" data-embed-url="' + url + '">' +
-                    '<p>🌐 Custom Embed: ' + url + '</p>' +
-                    '<p><em>This will be converted to an iframe in the markdown output</em></p>' +
-                '</div>';
+                embedHTML = `<div class="embed-container" data-embed-type="iframe" data-embed-url="${url}">
+                    <p>🌐 Custom Embed: ${url}</p>
+                    <p><em>This will be converted to an iframe in the markdown output</em></p>
+                </div>`;
             }
             
             if (embedHTML) {
@@ -1287,9 +1293,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             const markdown = markdownOutput.textContent;
             
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(markdown).then(function() {
+                navigator.clipboard.writeText(markdown).then(() => {
                     showToast('Markdown copied to clipboard!');
-                }).catch(function() {
+                }).catch(() => {
                     fallbackCopyTextToClipboard(markdown);
                 });
             } else {
@@ -1324,7 +1330,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                 toast.textContent = message;
                 toast.classList.add('show');
                 
-                setTimeout(function() {
+                setTimeout(() => {
                     toast.classList.remove('show');
                 }, 3000);
             }
@@ -1336,7 +1342,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             
             // Close all FAQ items
             const allAnswers = document.querySelectorAll('.faq-answer');
-            allAnswers.forEach(function(item) {
+            allAnswers.forEach(item => {
                 item.classList.remove('active');
             });
             
@@ -1363,6 +1369,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             }
         });
     </script>
+<Footer />
 </body>
 </html>
-</Layout>
