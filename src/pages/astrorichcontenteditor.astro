@@ -2,34 +2,87 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+const title = "Free Astro Markdown Editor | Rich Content to Markdown Converter";
+const description = "Convert rich text content to Astro-compatible Markdown instantly. Professional WYSIWYG editor with tables, embeds, code blocks, and frontmatter support. Free online tool.";
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
-
-<Layout
-	title="Astro Rich Content Markdown Generator"
-	description="Convert Rich Content into Astro Markdown"
-	pubDate={new Date('August 08 2021')}
-	heroImage="/blog-placeholder-about.jpg"
-
-	<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <BaseHead title={title} description={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astro Markdown Rich Content Editor</title>
+    <link rel="canonical" href={canonicalURL} />
     
-    <!-- Quill.js CDN -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.snow.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.min.js"></script>
+    <!-- SEO Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content={title}>
+    <meta property="og:description" content={description}>
+    <meta property="og:url" content={canonicalURL}>
+    <meta property="og:image" content="/astro-markdown-editor-preview.jpg">
     
-    <!-- Turndown for HTML to Markdown conversion -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content={title}>
+    <meta name="twitter:description" content={description}>
+    <meta name="twitter:image" content="/astro-markdown-editor-preview.jpg">
+    
+    <!-- Keywords -->
+    <meta name="keywords" content="astro markdown editor, markdown converter, rich text editor, WYSIWYG markdown, astro cms, markdown generator, frontmatter editor">
+    
+    <!-- Summernote CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
+    
+    <!-- Turndown for HTML to Markdown -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown.min.js"></script>
-    
-    <!-- Turndown plugin for tables -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown-plugin-gfm.min.js"></script>
     
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Astro Markdown Editor",
+        "description": "Free online tool to convert rich text content to Astro-compatible Markdown with frontmatter support",
+        "url": "https://yoursite.com/astro-markdown-editor",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "featureList": [
+            "Rich text editing",
+            "Markdown conversion", 
+            "Table support",
+            "Code syntax highlighting",
+            "Embed support",
+            "Frontmatter generation"
+        ]
+    }
+    </script>
+
     <style>
+        :root {
+            --primary: #2337FF;
+            --black: #000000;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -38,157 +91,206 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            line-height: 1.6;
+            color: var(--black);
+            background: var(--white);
         }
 
-        .container {
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--black) 100%);
+            color: var(--white);
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            background: var(--white);
+            color: var(--primary);
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(35, 55, 255, 0.2);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background: var(--gray-50);
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            color: var(--black);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-top: 4px solid var(--primary);
+        }
+
+        .feature-card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        /* Editor Section */
+        .editor-section {
+            padding: 0;
+            background: var(--white);
+        }
+
+        .editor-container {
             max-width: 1600px;
             margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-            overflow: hidden;
         }
 
-        .header {
-            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
-            color: white;
+        .editor-header {
+            background: var(--black);
+            color: var(--white);
             text-align: center;
-            padding: 30px 20px;
+            padding: 40px 20px;
         }
 
-        .header h1 {
+        .editor-header h2 {
             font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
+            margin-bottom: 15px;
         }
 
-        .header p {
-            opacity: 0.95;
+        .editor-header p {
             font-size: 1.1rem;
+            opacity: 0.9;
         }
 
-        .main-content {
+        .main-editor {
             display: flex;
-            min-height: calc(100vh - 200px);
+            min-height: 80vh;
+            background: var(--white);
         }
 
         .editor-panel {
             flex: 1;
             display: flex;
             flex-direction: column;
-            border-right: 1px solid #e1e5e9;
+            border-right: 1px solid var(--gray-200);
         }
 
-        .editor-header {
-            background: #f8fafc;
+        .editor-controls {
+            background: var(--gray-50);
             padding: 20px;
-            border-bottom: 1px solid #e1e5e9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .editor-header h3 {
-            color: #334155;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        .custom-toolbar {
-            padding: 10px 20px;
-            background: #ffffff;
-            border-bottom: 1px solid #e1e5e9;
+            border-bottom: 1px solid var(--gray-200);
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             align-items: center;
+            justify-content: center;
         }
 
-        .toolbar-group {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 0 10px;
-            border-right: 1px solid #e1e5e9;
-        }
-
-        .toolbar-group:last-child {
-            border-right: none;
-        }
-
-        .custom-button {
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            background: white;
+        .control-btn {
+            background: var(--white);
+            border: 1px solid var(--gray-300);
+            color: var(--black);
+            padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 13px;
-            color: #374151;
+            font-size: 14px;
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
 
-        .custom-button:hover {
-            background: #f3f4f6;
-            border-color: #9ca3af;
+        .control-btn:hover {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
         }
 
-        .custom-button.active {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-        }
-
-        .editor-container {
+        .editor-content {
             flex: 1;
             padding: 20px;
-            background: white;
         }
 
-        .quill-editor {
-            height: 100%;
+        #summernote {
             min-height: 500px;
         }
 
-        .ql-toolbar {
-            border: 1px solid #e1e5e9 !important;
-            border-bottom: none !important;
-            border-radius: 8px 8px 0 0 !important;
-            background: #f8fafc !important;
+        .note-editor {
+            border: 1px solid var(--gray-200) !important;
         }
 
-        .ql-container {
-            border: 1px solid #e1e5e9 !important;
-            border-top: none !important;
-            border-radius: 0 0 8px 8px !important;
-            font-size: 16px !important;
-            line-height: 1.6 !important;
+        .note-toolbar {
+            background: var(--gray-50) !important;
+            border-bottom: 1px solid var(--gray-200) !important;
         }
 
-        .ql-editor {
-            min-height: 450px;
-            padding: 20px !important;
+        .note-btn {
+            color: var(--black) !important;
         }
 
-        .ql-editor h1 { font-size: 2em !important; margin: 1em 0 0.5em 0 !important; }
-        .ql-editor h2 { font-size: 1.5em !important; margin: 1em 0 0.5em 0 !important; }
-        .ql-editor h3 { font-size: 1.17em !important; margin: 1em 0 0.5em 0 !important; }
+        .note-btn:hover {
+            background: var(--primary) !important;
+            color: var(--white) !important;
+        }
 
         .output-panel {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: #1e293b;
+            background: var(--black);
         }
 
         .output-header {
-            background: #0f172a;
-            color: white;
+            background: var(--black);
+            color: var(--white);
             padding: 20px;
             display: flex;
             justify-content: space-between;
@@ -196,27 +298,23 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
         }
 
         .output-header h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
+            font-size: 1.3rem;
         }
 
         .copy-btn {
-            background: #10b981;
-            color: white;
+            background: var(--primary);
+            color: var(--white);
             border: none;
             padding: 10px 20px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .copy-btn:hover {
-            background: #059669;
+            background: var(--white);
+            color: var(--primary);
             transform: translateY(-1px);
         }
 
@@ -224,29 +322,31 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            position: relative;
         }
 
         .markdown-output {
-            background: #1e293b;
-            color: #e2e8f0;
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--black);
+            color: var(--white);
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
             font-size: 14px;
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #334155;
             min-height: 400px;
         }
 
-        .feature-buttons {
+        .stats-bar {
+            background: var(--gray-50);
+            padding: 15px 20px;
+            border-top: 1px solid var(--gray-200);
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: var(--gray-600);
         }
 
+        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -254,42 +354,33 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             z-index: 10000;
-            animation: fadeIn 0.3s ease;
         }
 
         .modal-content {
-            background: white;
+            background: var(--white);
             width: 90%;
             max-width: 600px;
             margin: 50px auto;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         .modal h3 {
+            color: var(--primary);
             margin-bottom: 20px;
-            color: #1f2937;
             font-size: 1.5rem;
-            font-weight: 600;
         }
 
         .modal input, .modal textarea, .modal select {
             width: 100%;
             padding: 12px;
             margin: 8px 0 16px 0;
-            border: 1px solid #d1d5db;
+            border: 1px solid var(--gray-300);
             border-radius: 6px;
-            font-size: 14px;
             font-family: inherit;
-        }
-
-        .modal textarea {
-            resize: vertical;
-            min-height: 120px;
-            font-family: 'SF Mono', 'Monaco', monospace;
         }
 
         .modal-buttons {
@@ -304,39 +395,84 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             transition: all 0.2s;
         }
 
         .modal-btn.cancel {
-            background: #f3f4f6;
-            color: #374151;
+            background: var(--gray-100);
+            color: var(--black);
         }
 
         .modal-btn.primary {
-            background: #3b82f6;
-            color: white;
+            background: var(--primary);
+            color: var(--white);
         }
 
-        .modal-btn:hover {
-            transform: translateY(-1px);
+        /* FAQ Section */
+        .faq {
+            padding: 80px 0;
+            background: var(--white);
         }
 
+        .faq-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .faq h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            color: var(--black);
+        }
+
+        .faq-item {
+            margin-bottom: 20px;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            background: var(--gray-50);
+            padding: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--primary);
+            transition: all 0.2s;
+        }
+
+        .faq-question:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .faq-answer {
+            padding: 20px;
+            background: var(--white);
+            display: none;
+        }
+
+        .faq-answer.active {
+            display: block;
+        }
+
+        /* Toast */
         .toast {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 12px 24px;
+            background: var(--primary);
+            color: var(--white);
+            padding: 15px 25px;
             border-radius: 8px;
             z-index: 20000;
             opacity: 0;
             transform: translateX(100%);
-            transition: all 0.3s ease;
-            font-weight: 500;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            font-weight: 600;
         }
 
         .toast.show {
@@ -344,217 +480,241 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             transform: translateX(0);
         }
 
-        .stats {
-            background: #f8fafc;
-            padding: 15px 20px;
-            border-top: 1px solid #e1e5e9;
-            font-size: 13px;
-            color: #64748b;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
-            .main-content {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .main-editor {
                 flex-direction: column;
+                min-height: auto;
             }
 
             .editor-panel, .output-panel {
                 min-height: 50vh;
             }
 
-            .custom-toolbar {
+            .editor-controls {
                 flex-direction: column;
                 align-items: stretch;
             }
 
-            .toolbar-group {
-                border-right: none;
-                border-bottom: 1px solid #e1e5e9;
-                padding: 10px 0;
+            .control-btn {
                 justify-content: center;
             }
-
-            .feature-buttons {
-                justify-content: center;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .modal-content {
-                margin: 20px auto;
-                width: 95%;
-            }
         }
 
-        /* Custom Quill styles */
-        .ql-toolbar .ql-formats {
-            margin-right: 15px;
-        }
-
-        .ql-toolbar button {
-            padding: 5px !important;
-        }
-
-        .ql-toolbar button:hover {
-            color: #3b82f6 !important;
-        }
-
-        .ql-toolbar .ql-active {
-            color: #3b82f6 !important;
-        }
-
-        /* Syntax highlighting in output */
-        .markdown-output .hljs {
-            background: #2d3748;
-            color: #e2e8f0;
+        /* Hide default layout components when this page loads */
+        header, footer {
+            display: none !important;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚀 Astro Markdown Editor</h1>
-            <p>Professional rich content editor powered by Quill.js with real-time Astro-compatible Markdown conversion</p>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <h1>Free Astro Markdown Editor</h1>
+            <p>Convert rich text content to Astro-compatible Markdown instantly. Professional WYSIWYG editor with tables, embeds, code blocks, and frontmatter support.</p>
+            <a href="#editor" class="cta-button">Start Creating Content</a>
         </div>
-        
-        <div class="main-content">
-            <div class="editor-panel">
-                <div class="editor-header">
-                    <h3>📝 Rich Content Editor</h3>
-                    <div class="feature-buttons">
-                        <button class="custom-button" onclick="insertTemplate('blog')">
-                            📄 Blog Template
-                        </button>
-                        <button class="custom-button" onclick="insertTemplate('docs')">
-                            📚 Docs Template
-                        </button>
-                        <button class="custom-button" onclick="showEmbedModal()">
-                            🎬 Add Embed
-                        </button>
-                        <button class="custom-button" onclick="showFrontmatterModal()">
-                            ⚙️ Frontmatter
-                        </button>
-                    </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="features-container">
+            <h2>Why Choose Our Astro Markdown Editor?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>🚀 Astro Optimized</h3>
+                    <p>Generates perfect Astro-compatible Markdown with proper frontmatter, code blocks, and component syntax.</p>
                 </div>
-                
-                <div class="custom-toolbar">
-                    <div class="toolbar-group">
-                        <button class="custom-button" onclick="insertYouTube()">
-                            📺 YouTube
-                        </button>
-                        <button class="custom-button" onclick="insertTwitter()">
-                            🐦 Twitter
-                        </button>
-                        <button class="custom-button" onclick="insertCodePen()">
-                            💻 CodePen
-                        </button>
-                    </div>
-                    
-                    <div class="toolbar-group">
-                        <button class="custom-button" onclick="insertCallout('info')">
-                            ℹ️ Info
-                        </button>
-                        <button class="custom-button" onclick="insertCallout('warning')">
-                            ⚠️ Warning
-                        </button>
-                        <button class="custom-button" onclick="insertCallout('tip')">
-                            💡 Tip
-                        </button>
-                    </div>
-                    
-                    <div class="toolbar-group">
-                        <button class="custom-button" onclick="insertFootnote()">
-                            📝 Footnote
-                        </button>
-                        <button class="custom-button" onclick="insertTOC()">
-                            📑 TOC
-                        </button>
-                        <button class="custom-button" onclick="clearEditor()">
-                            🗑️ Clear
-                        </button>
-                    </div>
+                <div class="feature-card">
+                    <h3>📊 Advanced Tables</h3>
+                    <p>Create and edit complex tables with full formatting support. Converts to GitHub Flavored Markdown tables.</p>
                 </div>
-                
-                <div class="editor-container">
-                    <div id="quill-editor" class="quill-editor"></div>
+                <div class="feature-card">
+                    <h3>🎬 Media Embeds</h3>
+                    <p>Embed YouTube videos, Twitter posts, CodePen demos, and custom iframes with automatic conversion.</p>
                 </div>
-                
-                <div class="stats">
-                    <span id="wordCount">Words: 0 | Characters: 0</span>
-                    <span>Last updated: <span id="lastUpdated">Never</span></span>
+                <div class="feature-card">
+                    <h3>💻 Code Highlighting</h3>
+                    <p>Support for multiple programming languages with proper syntax highlighting and formatting.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>⚡ Real-time Preview</h3>
+                    <p>See your Markdown output update in real-time as you type and format your content.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🆓 Completely Free</h3>
+                    <p>No registration, no limits, no watermarks. Use our tool as much as you want, forever.</p>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- Editor Section -->
+    <section id="editor" class="editor-section">
+        <div class="editor-container">
+            <div class="editor-header">
+                <h2>Rich Content to Markdown Converter</h2>
+                <p>Create beautiful content with our WYSIWYG editor and get perfect Astro Markdown output</p>
+            </div>
+
+            <div class="main-editor">
+                <div class="editor-panel">
+                    <div class="editor-controls">
+                        <button class="control-btn" onclick="insertTemplate('blog')">
+                            <i class="fas fa-file-alt"></i> Blog Template
+                        </button>
+                        <button class="control-btn" onclick="insertTemplate('docs')">
+                            <i class="fas fa-book"></i> Docs Template
+                        </button>
+                        <button class="control-btn" onclick="showFrontmatterModal()">
+                            <i class="fas fa-cog"></i> Frontmatter
+                        </button>
+                        <button class="control-btn" onclick="showEmbedModal()">
+                            <i class="fas fa-video"></i> Add Embed
+                        </button>
+                        <button class="control-btn" onclick="insertTable()">
+                            <i class="fas fa-table"></i> Insert Table
+                        </button>
+                        <button class="control-btn" onclick="clearEditor()">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
+
+                    <div class="editor-content">
+                        <div id="summernote"></div>
+                    </div>
+
+                    <div class="stats-bar">
+                        <span id="wordCount">Words: 0 | Characters: 0</span>
+                        <span>Last updated: <span id="lastUpdated">Never</span></span>
+                    </div>
+                </div>
+
+                <div class="output-panel">
+                    <div class="output-header">
+                        <h3>Astro Markdown Output</h3>
+                        <button class="copy-btn" onclick="copyMarkdown()">
+                            <i class="fas fa-copy"></i> Copy Markdown
+                        </button>
+                    </div>
+                    <div class="output-content">
+                        <div id="markdownOutput" class="markdown-output"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq">
+        <div class="faq-container">
+            <h2>Frequently Asked Questions</h2>
             
-            <div class="output-panel">
-                <div class="output-header">
-                    <h3>📄 Astro Markdown Output</h3>
-                    <button class="copy-btn" onclick="copyMarkdown()">
-                        📋 Copy Markdown
-                    </button>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    What is Astro Markdown and why do I need this editor?
                 </div>
-                <div class="output-content">
-                    <div id="markdownOutput" class="markdown-output"></div>
+                <div class="faq-answer">
+                    <p>Astro is a modern web framework that uses Markdown for content creation. Our editor helps you create rich content visually and converts it to proper Astro-compatible Markdown with frontmatter, making it easy to create blog posts, documentation, and other content for Astro sites.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    Is this tool really free to use?
+                </div>
+                <div class="faq-answer">
+                    <p>Yes! Our Astro Markdown editor is completely free with no registration required, no usage limits, and no watermarks. You can use it as much as you want for personal or commercial projects.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    Can I create tables with this editor?
+                </div>
+                <div class="faq-answer">
+                    <p>Absolutely! Our editor includes full table support with the ability to add/remove rows and columns, format cells, and automatically converts to GitHub Flavored Markdown table syntax that works perfectly with Astro.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    What types of embeds are supported?
+                </div>
+                <div class="faq-answer">
+                    <p>We support YouTube videos, Twitter posts, CodePen demos, GitHub Gists, Vimeo videos, and custom iframes. All embeds are converted to proper HTML that works seamlessly in Astro components.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    How do I add frontmatter to my content?
+                </div>
+                <div class="faq-answer">
+                    <p>Click the "Frontmatter" button in the editor controls. You can add title, description, author, tags, publication date, and draft status. The frontmatter will be automatically added to your Markdown output in the correct YAML format.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    Does this work with other static site generators?
+                </div>
+                <div class="faq-answer">
+                    <p>While optimized for Astro, the Markdown output is compatible with most static site generators including Next.js, Gatsby, Hugo, Jekyll, and others that support GitHub Flavored Markdown.</p>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Modals -->
-    <div id="embedModal" class="modal">
-        <div class="modal-content">
-            <h3>🎬 Insert Embed</h3>
-            <label>Embed Type:</label>
-            <select id="embedType">
-                <option value="youtube">YouTube Video</option>
-                <option value="twitter">Twitter Post</option>
-                <option value="codepen">CodePen</option>
-                <option value="iframe">Custom Iframe</option>
-                <option value="vimeo">Vimeo</option>
-                <option value="github">GitHub Gist</option>
-            </select>
-            <label>URL or Embed Code:</label>
-            <input type="text" id="embedURL" placeholder="Paste your URL here...">
-            <label>Width (optional):</label>
-            <input type="text" id="embedWidth" placeholder="100%" value="100%">
-            <label>Height (optional):</label>
-            <input type="text" id="embedHeight" placeholder="400px" value="400px">
-            <div class="modal-buttons">
-                <button class="modal-btn cancel" onclick="closeModal('embedModal')">Cancel</button>
-                <button class="modal-btn primary" onclick="insertEmbed()">Insert Embed</button>
-            </div>
-        </div>
-    </div>
-
     <div id="frontmatterModal" class="modal">
         <div class="modal-content">
-            <h3>⚙️ Document Frontmatter</h3>
+            <h3>Document Frontmatter</h3>
             <label>Title:</label>
-            <input type="text" id="fmTitle" placeholder="Your awesome post title">
+            <input type="text" id="fmTitle" placeholder="Your post title">
             <label>Description:</label>
-            <textarea id="fmDescription" placeholder="A brief description of your content"></textarea>
+            <textarea id="fmDescription" placeholder="Brief description of your content"></textarea>
             <label>Author:</label>
             <input type="text" id="fmAuthor" placeholder="Your name">
             <label>Tags (comma-separated):</label>
             <input type="text" id="fmTags" placeholder="astro, markdown, blog">
-            <label>Date:</label>
+            <label>Publication Date:</label>
             <input type="date" id="fmDate">
-            <label>Draft:</label>
+            <label>Status:</label>
             <select id="fmDraft">
                 <option value="false">Published</option>
                 <option value="true">Draft</option>
             </select>
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeModal('frontmatterModal')">Cancel</button>
-                <button class="modal-btn primary" onclick="insertFrontmatter()">Apply Frontmatter</button>
+                <button class="modal-btn primary" onclick="insertFrontmatter()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="embedModal" class="modal">
+        <div class="modal-content">
+            <h3>Insert Media Embed</h3>
+            <label>Embed Type:</label>
+            <select id="embedType">
+                <option value="youtube">YouTube Video</option>
+                <option value="twitter">Twitter Post</option>
+                <option value="codepen">CodePen</option>
+                <option value="vimeo">Vimeo</option>
+                <option value="github">GitHub Gist</option>
+                <option value="iframe">Custom Iframe</option>
+            </select>
+            <label>URL:</label>
+            <input type="text" id="embedURL" placeholder="Paste your URL here">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeModal('embedModal')">Cancel</button>
+                <button class="modal-btn primary" onclick="insertEmbed()">Insert</button>
             </div>
         </div>
     </div>
@@ -562,80 +722,60 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
     <div id="toast" class="toast"></div>
 
     <script>
-        let quill;
         let frontmatter = '';
+        let editor;
         
-        // Initialize Quill editor
-        document.addEventListener('DOMContentLoaded', function() {
-            // Quill configuration
-            const toolbarOptions = [
-                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                ['bold', 'italic', 'underline', 'strike'],
-                [{ 'color': [] }, { 'background': [] }],
-                [{ 'script': 'sub'}, { 'script': 'super' }],
-                ['blockquote', 'code-block'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
-                [{ 'indent': '-1'}, { 'indent': '+1' }],
-                [{ 'align': [] }],
-                ['link', 'image', 'video'],
-                ['table'],
-                ['clean']
-            ];
-
-            quill = new Quill('#quill-editor', {
-                theme: 'snow',
-                modules: {
-                    toolbar: toolbarOptions,
-                    table: true
-                },
-                placeholder: 'Start writing your amazing content here...\n\nTip: Use the toolbar above for formatting, or try the custom buttons for special features like embeds and templates!'
+        $(document).ready(function() {
+            // Initialize Summernote
+            $('#summernote').summernote({
+                height: 500,
+                minHeight: 400,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'clear']],
+                    ['fontname', ['fontname']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture', 'video']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ],
+                placeholder: 'Start writing your content here...\n\nUse the toolbar above for formatting, tables, links, and more!',
+                callbacks: {
+                    onChange: function(contents) {
+                        updateMarkdown();
+                        updateWordCount();
+                        updateLastModified();
+                    }
+                }
             });
 
-            // Initialize with sample content
-            const delta = {
-                "ops": [
-                    {"insert": "Welcome to the Astro Markdown Editor"},
-                    {"attributes": {"header": 1}, "insert": "\n"},
-                    {"insert": "\nThis is a "},
-                    {"attributes": {"bold": true}, "insert": "powerful rich content editor"},
-                    {"insert": " that converts your content to "},
-                    {"attributes": {"italic": true}, "insert": "Astro-compatible Markdown"},
-                    {"insert": " in real-time!\n\n"},
-                    {"insert": "Key Features"},
-                    {"attributes": {"header": 2}, "insert": "\n"},
-                    {"insert": "\nFull-featured rich text editing with Quill.js"},
-                    {"attributes": {"list": "bullet"}, "insert": "\n"},
-                    {"insert": "Tables, images, links, and code blocks"},
-                    {"attributes": {"list": "bullet"}, "insert": "\n"},
-                    {"insert": "YouTube, Twitter, and other embeds"},
-                    {"attributes": {"list": "bullet"}, "insert": "\n"},
-                    {"insert": "Frontmatter support for Astro"},
-                    {"attributes": {"list": "bullet"}, "insert": "\n"},
-                    {"insert": "Real-time Markdown preview"},
-                    {"attributes": {"list": "bullet"}, "insert": "\n"},
-                    {"insert": "\n"},
-                    {"insert": "Try it out!"},
-                    {"attributes": {"header": 3}, "insert": "\n"},
-                    {"insert": "\nStart typing, formatting, and watch the magic happen in the right panel. The Markdown output is ready to paste into your Astro project!\n\n"},
-                    {"insert": "This is a code snippet: "},
-                    {"attributes": {"code": true}, "insert": "console.log('Hello Astro!')"},
-                    {"insert": "\n\nAnd here's a blockquote:"},
-                    {"insert": "\n"},
-                    {"insert": "\"The best way to get started is to quit talking and begin doing.\" - Walt Disney"},
-                    {"attributes": {"blockquote": true}, "insert": "\n"}
-                ]
-            };
+            // Insert initial content
+            const initialContent = `
+                <h1>Welcome to the Astro Markdown Editor</h1>
+                <p>This is a <strong>professional rich content editor</strong> that converts your content to <em>Astro-compatible Markdown</em> in real-time!</p>
+                
+                <h2>Key Features</h2>
+                <ul>
+                    <li>Full-featured rich text editing</li>
+                    <li>Advanced table support</li>
+                    <li>Media embeds (YouTube, Twitter, etc.)</li>
+                    <li>Code syntax highlighting</li>
+                    <li>Frontmatter generation</li>
+                    <li>Real-time Markdown preview</li>
+                </ul>
+
+                <h3>Try it out!</h3>
+                <p>Start editing this content and watch the Markdown output update in real-time in the right panel.</p>
+
+                <blockquote>
+                    <p>"The best way to get started is to quit talking and begin doing." - Walt Disney</p>
+                </blockquote>
+            `;
             
-            quill.setContents(delta);
-
-            // Listen for content changes
-            quill.on('text-change', function() {
-                updateMarkdown();
-                updateWordCount();
-                updateLastModified();
-            });
-
-            // Initial conversion
+            $('#summernote').summernote('code', initialContent);
+            
+            // Initial update
             updateMarkdown();
             updateWordCount();
             updateLastModified();
@@ -651,68 +791,31 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
         // Add GFM plugin for better table support
         turndownService.use(TurndownPluginGfm.tables);
 
-        // Custom rules for better Astro compatibility
+        // Custom rules for Astro compatibility
         turndownService.addRule('customCodeBlock', {
             filter: 'pre',
             replacement: function(content, node) {
-                const language = node.querySelector('code') ? 
-                    (node.querySelector('code').className.replace('language-', '').replace('ql-syntax', '') || '') : '';
-                return '\n\n```' + language + '\n' + content + '\n```\n\n';
-            }
-        });
-
-        // Custom rule for embeds
-        turndownService.addRule('embeds', {
-            filter: function(node) {
-                return node.classList && node.classList.contains('embed-container');
-            },
-            replacement: function(content, node) {
-                const embedType = node.dataset.embedType;
-                const embedUrl = node.dataset.embedUrl;
-                const embedId = node.dataset.embedId;
-                
-                switch(embedType) {
-                    case 'youtube':
-                        return `\n\n<iframe width="560" height="315" src="https://www.youtube.com/embed/${embedId}" frameborder="0" allowfullscreen></iframe>\n\n`;
-                    case 'twitter':
-                        return `\n\n<!-- Twitter Embed: ${embedUrl} -->\n<!-- Remember to add Twitter script to your Astro layout -->\n\n`;
-                    case 'codepen':
-                        return `\n\n<!-- CodePen Embed: ${embedUrl} -->\n<!-- Remember to add CodePen script to your Astro layout -->\n\n`;
-                    case 'iframe':
-                        return `\n\n<iframe src="${embedUrl}" width="100%" height="400" frameborder="0"></iframe>\n\n`;
-                    default:
-                        return '\n\n<!-- Custom Embed -->\n\n';
-                }
-            }
-        });
-
-        // Custom rule for callouts
-        turndownService.addRule('callouts', {
-            filter: function(node) {
-                return node.classList && node.classList.contains('callout');
-            },
-            replacement: function(content, node) {
-                const type = node.dataset.calloutType || 'info';
-                return `\n\n:::${type}\n${content.trim()}\n:::\n\n`;
+                const language = node.className ? node.className.replace('language-', '') : '';
+                return '\\n\\n```' + language + '\\n' + content + '\\n```\\n\\n';
             }
         });
 
         function updateMarkdown() {
-            const html = quill.root.innerHTML;
+            const html = $('#summernote').summernote('code');
             let markdown = turndownService.turndown(html);
             
             // Clean up extra line breaks
-            markdown = markdown.replace(/\n\n\n+/g, '\n\n');
+            markdown = markdown.replace(/\\n\\n\\n+/g, '\\n\\n');
             
             // Add frontmatter if exists
-            const finalMarkdown = frontmatter ? frontmatter + '\n' + markdown : markdown;
+            const finalMarkdown = frontmatter ? frontmatter + '\\n' + markdown : markdown;
             
             document.getElementById('markdownOutput').textContent = finalMarkdown;
         }
 
         function updateWordCount() {
-            const text = quill.getText();
-            const words = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+            const text = $('#summernote').summernote('code').replace(/<[^>]*>/g, '');
+            const words = text.trim().split(/\\s+/).filter(word => word.length > 0).length;
             const characters = text.length;
             document.getElementById('wordCount').textContent = `Words: ${words} | Characters: ${characters}`;
         }
@@ -723,185 +826,92 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
         }
 
         function insertTemplate(type) {
-            let delta;
+            let content = '';
             
             if (type === 'blog') {
-                delta = {
-                    "ops": [
-                        {"insert": "My Amazing Blog Post"},
-                        {"attributes": {"header": 1}, "insert": "\n"},
-                        {"insert": "\nPublished on " + new Date().toLocaleDateString()},
-                        {"insert": "\n\n"},
-                        {"insert": "Introduction"},
-                        {"attributes": {"header": 2}, "insert": "\n"},
-                        {"insert": "\nWrite your compelling introduction here. Hook your readers with an interesting fact, question, or statement.\n\n"},
-                        {"insert": "Main Content"},
-                        {"attributes": {"header": 2}, "insert": "\n"},
-                        {"insert": "\nThis is where your main content goes. You can add:"},
-                        {"insert": "\n"},
-                        {"insert": "Lists and bullet points"},
-                        {"attributes": {"list": "bullet"}, "insert": "\n"},
-                        {"insert": "Code examples and snippets"},
-                        {"attributes": {"list": "bullet"}, "insert": "\n"},
-                        {"insert": "Images and media"},
-                        {"attributes": {"list": "bullet"}, "insert": "\n"},
-                        {"insert": "Tables and data"},
-                        {"attributes": {"list": "bullet"}, "insert": "\n"},
-                        {"insert": "\n"},
-                        {"insert": "Conclusion"},
-                        {"attributes": {"header": 2}, "insert": "\n"},
-                        {"insert": "\nWrap up your post with a strong conclusion that summarizes your key points and provides value to your readers.\n"}
-                    ]
-                };
+                content = `
+                    <h1>My Amazing Blog Post</h1>
+                    <p><em>Published on ${new Date().toLocaleDateString()}</em></p>
+                    
+                    <h2>Introduction</h2>
+                    <p>Write your compelling introduction here. Hook your readers with an interesting fact, question, or statement.</p>
+                    
+                    <h2>Main Content</h2>
+                    <p>This is where your main content goes. You can add:</p>
+                    <ul>
+                        <li>Lists and bullet points</li>
+                        <li>Code examples and snippets</li>
+                        <li>Images and media</li>
+                        <li>Tables and data</li>
+                    </ul>
+                    
+                    <h2>Conclusion</h2>
+                    <p>Wrap up your post with a strong conclusion that summarizes your key points.</p>
+                `;
             } else if (type === 'docs') {
-                delta = {
-                    "ops": [
-                        {"insert": "Documentation Title"},
-                        {"attributes": {"header": 1}, "insert": "\n"},
-                        {"insert": "\nBrief description of what this documentation covers.\n\n"},
-                        {"insert": "Table of Contents"},
-                        {"attributes": {"header": 2}, "insert": "\n"},
-                        {"insert": "\nOverview"},
-                        {"attributes": {"list": "ordered"}, "insert": "\n"},
-                        {"insert": "Getting Started"},
-                        {"attributes": {"list": "ordered"}, "insert": "\n"},
-                        {"insert": "API Reference"},
-                        {"attributes": {"list": "ordered"}, "insert": "\n"},
-                        {"insert": "Examples"},
-                        {"attributes": {"list": "ordered"}, "insert": "\n"},
-                        {"insert": "Troubleshooting"},
-                        {"attributes": {"list": "ordered"}, "insert": "\n"},
-                        {"insert": "\n"},
-                        {"insert": "Overview"},
-                        {"attributes": {"header": 2}, "insert": "\n"},
-                        {"insert": "\nProvide a high-level overview of the feature or API you're documenting.\n\n"},
-                        {"insert": "Getting Started"},
-                        {"attributes": {"header": 2}, "insert": "\n"},
-                        {"insert": "\nStep-by-step instructions for getting started:\n\n"},
-                        {"insert": "Install the package"},
-                        {"attributes": {"list": "ordered"}, "insert": "\n"},
-                        {"insert": "Configure your project"},
-                        {"attributes": {"list": "ordered"}, "insert": "\n"},
-                        {"insert": "Run your first example"},
-                        {"attributes": {"list": "ordered"}, "insert": "\n"},
-                        {"insert": "\n"},
-                        {"insert": "Example Code"},
-                        {"attributes": {"header": 3}, "insert": "\n"},
-                        {"insert": "\n"},
-                        {"insert": "// Your example code here\nconst example = 'Hello, World!';"},
-                        {"attributes": {"code-block": true}, "insert": "\n"},
-                        {"insert": "\n"}
-                    ]
-                };
+                content = `
+                    <h1>Documentation Title</h1>
+                    <p>Brief description of what this documentation covers.</p>
+                    
+                    <h2>Table of Contents</h2>
+                    <ol>
+                        <li>Overview</li>
+                        <li>Getting Started</li>
+                        <li>API Reference</li>
+                        <li>Examples</li>
+                    </ol>
+                    
+                    <h2>Overview</h2>
+                    <p>Provide a high-level overview of the feature or API you're documenting.</p>
+                    
+                    <h2>Getting Started</h2>
+                    <p>Step-by-step instructions:</p>
+                    <ol>
+                        <li>Install the package</li>
+                        <li>Configure your project</li>
+                        <li>Run your first example</li>
+                    </ol>
+                `;
             }
             
-            quill.setContents(delta);
+            $('#summernote').summernote('code', content);
             updateMarkdown();
         }
 
-        function insertYouTube() {
-            const url = prompt('Enter YouTube URL:');
-            if (url) {
-                const videoId = extractYouTubeId(url);
-                if (videoId) {
-                    const embedHTML = `<div class="embed-container" data-embed-type="youtube" data-embed-id="${videoId}" data-embed-url="${url}">
-                        <p>📺 YouTube Video: ${url}</p>
-                        <p><em>This will be converted to an iframe in the markdown output</em></p>
-                    </div>`;
-                    
-                    const range = quill.getSelection();
-                    quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
-                    updateMarkdown();
-                } else {
-                    showToast('Invalid YouTube URL');
-                }
-            }
-        }
-
-        function insertTwitter() {
-            const url = prompt('Enter Twitter post URL:');
-            if (url) {
-                const embedHTML = `<div class="embed-container" data-embed-type="twitter" data-embed-url="${url}">
-                    <p>🐦 Twitter Post: ${url}</p>
-                    <p><em>This will be converted to a Twitter embed in the markdown output</em></p>
-                </div>`;
-                
-                const range = quill.getSelection();
-                quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
-                updateMarkdown();
-            }
-        }
-
-        function insertCodePen() {
-            const url = prompt('Enter CodePen URL:');
-            if (url) {
-                const embedHTML = `<div class="embed-container" data-embed-type="codepen" data-embed-url="${url}">
-                    <p>💻 CodePen: ${url}</p>
-                    <p><em>This will be converted to a CodePen embed in the markdown output</em></p>
-                </div>`;
-                
-                const range = quill.getSelection();
-                quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
-                updateMarkdown();
-            }
-        }
-
-        function insertCallout(type) {
-            const text = prompt(`Enter ${type} message:`);
-            if (text) {
-                const icons = { info: 'ℹ️', warning: '⚠️', tip: '💡' };
-                const colors = { 
-                    info: 'background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px;', 
-                    warning: 'background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px;',
-                    tip: 'background: #d1fae5; border-left: 4px solid #10b981; padding: 15px;'
-                };
-                
-                const calloutHTML = `<div class="callout" data-callout-type="${type}" style="${colors[type]}">
-                    <p><strong>${icons[type]} ${type.charAt(0).toUpperCase() + type.slice(1)}</strong></p>
-                    <p>${text}</p>
-                </div>`;
-                
-                const range = quill.getSelection();
-                quill.clipboard.dangerouslyPasteHTML(range.index, calloutHTML);
-                updateMarkdown();
-            }
-        }
-
-        function insertFootnote() {
-            const text = prompt('Enter footnote text:');
-            if (text) {
-                const footnoteNum = Date.now().toString().slice(-4);
-                const footnoteHTML = `<sup><a href="#fn${footnoteNum}" id="ref${footnoteNum}">${footnoteNum}</a></sup>`;
-                
-                const range = quill.getSelection();
-                quill.clipboard.dangerouslyPasteHTML(range.index, footnoteHTML);
-                
-                // Add footnote at the end
-                const currentLength = quill.getLength();
-                quill.clipboard.dangerouslyPasteHTML(currentLength, 
-                    `\n\n<p id="fn${footnoteNum}"><small>${footnoteNum}. ${text} <a href="#ref${footnoteNum}">↩</a></small></p>`);
-                
-                updateMarkdown();
-            }
-        }
-
-        function insertTOC() {
-            const tocHTML = `<div class="toc">
-                <p><strong>📑 Table of Contents</strong></p>
-                <p><em>This will be automatically generated based on your headings</em></p>
-            </div>`;
-            
-            const range = quill.getSelection();
-            quill.clipboard.dangerouslyPasteHTML(range.index, tocHTML);
+        function insertTable() {
+            const tableHTML = `
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Header 1</th>
+                            <th>Header 2</th>
+                            <th>Header 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Cell 1</td>
+                            <td>Cell 2</td>
+                            <td>Cell 3</td>
+                        </tr>
+                        <tr>
+                            <td>Cell 4</td>
+                            <td>Cell 5</td>
+                            <td>Cell 6</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+            $('#summernote').summernote('pasteHTML', tableHTML);
             updateMarkdown();
         }
 
         function clearEditor() {
             if (confirm('Are you sure you want to clear all content?')) {
-                quill.setText('');
+                $('#summernote').summernote('code', '');
                 frontmatter = '';
                 updateMarkdown();
-                showToast('Editor cleared');
+                showToast('Editor cleared successfully!');
             }
         }
 
@@ -911,64 +921,6 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
-        }
-
-        function showEmbedModal() {
-            showModal('embedModal');
-        }
-
-        function insertEmbed() {
-            const type = document.getElementById('embedType').value;
-            const url = document.getElementById('embedURL').value;
-            const width = document.getElementById('embedWidth').value || '100%';
-            const height = document.getElementById('embedHeight').value || '400px';
-            
-            if (url) {
-                let embedHTML = '';
-                let embedId = '';
-                
-                switch(type) {
-                    case 'youtube':
-                        embedId = extractYouTubeId(url);
-                        embedHTML = `<div class="embed-container" data-embed-type="youtube" data-embed-id="${embedId}" data-embed-url="${url}">
-                            <p>📺 YouTube Video: ${url}</p>
-                        </div>`;
-                        break;
-                    case 'twitter':
-                        embedHTML = `<div class="embed-container" data-embed-type="twitter" data-embed-url="${url}">
-                            <p>🐦 Twitter Post: ${url}</p>
-                        </div>`;
-                        break;
-                    case 'codepen':
-                        embedHTML = `<div class="embed-container" data-embed-type="codepen" data-embed-url="${url}">
-                            <p>💻 CodePen: ${url}</p>
-                        </div>`;
-                        break;
-                    case 'iframe':
-                        embedHTML = `<div class="embed-container" data-embed-type="iframe" data-embed-url="${url}" data-width="${width}" data-height="${height}">
-                            <p>🌐 Custom Embed: ${url}</p>
-                        </div>`;
-                        break;
-                    case 'vimeo':
-                        embedHTML = `<div class="embed-container" data-embed-type="vimeo" data-embed-url="${url}">
-                            <p>🎬 Vimeo Video: ${url}</p>
-                        </div>`;
-                        break;
-                    case 'github':
-                        embedHTML = `<div class="embed-container" data-embed-type="github" data-embed-url="${url}">
-                            <p>📦 GitHub Gist: ${url}</p>
-                        </div>`;
-                        break;
-                }
-                
-                if (embedHTML) {
-                    const range = quill.getSelection() || { index: quill.getLength() };
-                    quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
-                    updateMarkdown();
-                    closeModal('embedModal');
-                    showToast('Embed added successfully');
-                }
-            }
         }
 
         function showFrontmatterModal() {
@@ -983,23 +935,67 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             const date = document.getElementById('fmDate').value;
             const draft = document.getElementById('fmDraft').value;
             
-            let fm = '---\n';
-            if (title) fm += `title: "${title}"\n`;
-            if (description) fm += `description: "${description}"\n`;
-            if (author) fm += `author: "${author}"\n`;
-            if (date) fm += `pubDate: "${date}"\n`;
-            if (tags) fm += `tags: [${tags.split(',').map(tag => `"${tag.trim()}"`).join(', ')}]\n`;
-            fm += `draft: ${draft}\n`;
+            let fm = '---\\n';
+            if (title) fm += `title: "${title}"\\n`;
+            if (description) fm += `description: "${description}"\\n`;
+            if (author) fm += `author: "${author}"\\n`;
+            if (date) fm += `pubDate: "${date}"\\n`;
+            if (tags) fm += `tags: [${tags.split(',').map(tag => `"${tag.trim()}"`).join(', ')}]\\n`;
+            fm += `draft: ${draft}\\n`;
             fm += '---';
             
             frontmatter = fm;
             updateMarkdown();
             closeModal('frontmatterModal');
-            showToast('Frontmatter applied');
+            showToast('Frontmatter applied successfully!');
+        }
+
+        function showEmbedModal() {
+            showModal('embedModal');
+        }
+
+        function insertEmbed() {
+            const type = document.getElementById('embedType').value;
+            const url = document.getElementById('embedURL').value;
+            
+            if (!url) return;
+            
+            let embedHTML = '';
+            
+            switch(type) {
+                case 'youtube':
+                    const videoId = extractYouTubeId(url);
+                    if (videoId) {
+                        embedHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+                    }
+                    break;
+                case 'twitter':
+                    embedHTML = `<!-- Twitter Embed: ${url} -->\\n<!-- Add Twitter embed script to your layout -->`;
+                    break;
+                case 'codepen':
+                    embedHTML = `<!-- CodePen Embed: ${url} -->\\n<!-- Add CodePen embed script to your layout -->`;
+                    break;
+                case 'vimeo':
+                    embedHTML = `<!-- Vimeo Embed: ${url} -->`;
+                    break;
+                case 'github':
+                    embedHTML = `<!-- GitHub Gist: ${url} -->`;
+                    break;
+                case 'iframe':
+                    embedHTML = `<iframe src="${url}" width="100%" height="400" frameborder="0"></iframe>`;
+                    break;
+            }
+            
+            if (embedHTML) {
+                $('#summernote').summernote('pasteHTML', embedHTML);
+                updateMarkdown();
+                closeModal('embedModal');
+                showToast('Embed added successfully!');
+            }
         }
 
         function extractYouTubeId(url) {
-            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            const regex = /(?:youtube\\.com\\/(?:[^\\/]+\\/.+\\/|(?:v|e(?:mbed)?)\\/|.*[?&]v=)|youtu\\.be\\/)([^"&?\\/\\s]{11})/;
             const match = url.match(regex);
             return match ? match[1] : null;
         }
@@ -1007,16 +1003,15 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
         function copyMarkdown() {
             const markdown = document.getElementById('markdownOutput').textContent;
             navigator.clipboard.writeText(markdown).then(() => {
-                showToast('Markdown copied to clipboard! 🎉');
+                showToast('Markdown copied to clipboard!');
             }).catch(() => {
-                // Fallback for older browsers
                 const textarea = document.createElement('textarea');
                 textarea.value = markdown;
                 document.body.appendChild(textarea);
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
-                showToast('Markdown copied to clipboard! 🎉');
+                showToast('Markdown copied to clipboard!');
             });
         }
 
@@ -1028,6 +1023,21 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
+        }
+
+        function toggleFaq(element) {
+            const answer = element.nextElementSibling;
+            const isActive = answer.classList.contains('active');
+            
+            // Close all FAQ items
+            document.querySelectorAll('.faq-answer').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Toggle current item
+            if (!isActive) {
+                answer.classList.add('active');
+            }
         }
 
         // Close modals when clicking outside
@@ -1045,14 +1055,9 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
                         e.preventDefault();
                         copyMarkdown();
                         break;
-                    case 'k':
-                        e.preventDefault();
-                        showEmbedModal();
-                        break;
                 }
             }
         });
     </script>
 </body>
 </html>
-</Layout>
