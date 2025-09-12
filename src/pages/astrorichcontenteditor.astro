@@ -1,7 +1,5 @@
 ---
 import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
 
 const title = "Free Astro Markdown Editor | Rich Content to Markdown Converter";
 const description = "Convert rich text content to Astro-compatible Markdown instantly. Professional WYSIWYG editor with tables, embeds, code blocks, and frontmatter support. Free online tool.";
@@ -94,6 +92,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             line-height: 1.6;
             color: var(--black);
             background: var(--white);
+        }
+
+        /* Hide default layout components */
+        header, footer, nav {
+            display: none !important;
         }
 
         /* Hero Section */
@@ -504,11 +507,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                 justify-content: center;
             }
         }
-
-        /* Hide default layout components when this page loads */
-        header, footer {
-            display: none !important;
-        }
     </style>
 </head>
 
@@ -528,27 +526,27 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             <h2>Why Choose Our Astro Markdown Editor?</h2>
             <div class="features-grid">
                 <div class="feature-card">
-                    <h3>🚀 Astro Optimized</h3>
+                    <h3>Astro Optimized</h3>
                     <p>Generates perfect Astro-compatible Markdown with proper frontmatter, code blocks, and component syntax.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>📊 Advanced Tables</h3>
+                    <h3>Advanced Tables</h3>
                     <p>Create and edit complex tables with full formatting support. Converts to GitHub Flavored Markdown tables.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>🎬 Media Embeds</h3>
-                    <p>Embed YouTube videos, Twitter posts, CodePen deremos, and custom iframes with automatic conversion.</p>
+                    <h3>Media Embeds</h3>
+                    <p>Embed YouTube videos, Twitter posts, CodePen demos, and custom iframes with automatic conversion.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>💻 Code Highlighting</h3>
+                    <h3>Code Highlighting</h3>
                     <p>Support for multiple programming languages with proper syntax highlighting and formatting.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>⚡ Real-time Preview</h3>
+                    <h3>Real-time Preview</h3>
                     <p>See your Markdown output update in real-time as you type and format your content.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>🆓 Completely Free</h3>
+                    <h3>Completely Free</h3>
                     <p>No registration, no limits, no watermarks. Use our tool as much as you want, forever.</p>
                 </div>
             </div>
@@ -721,11 +719,15 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <div id="toast" class="toast"></div>
 
-    <script>
+    <script is:inline>
         let frontmatter = '';
-        let editor;
         
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof $ === 'undefined' || typeof $.fn.summernote === 'undefined') {
+                console.error('Summernote dependencies not loaded');
+                return;
+            }
+
             // Initialize Summernote
             $('#summernote').summernote({
                 height: 500,
@@ -751,27 +753,23 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             });
 
             // Insert initial content
-            const initialContent = `
-                <h1>Welcome to the Astro Markdown Editor</h1>
-                <p>This is a <strong>professional rich content editor</strong> that converts your content to <em>Astro-compatible Markdown</em> in real-time!</p>
-                
-                <h2>Key Features</h2>
-                <ul>
-                    <li>Full-featured rich text editing</li>
-                    <li>Advanced table support</li>
-                    <li>Media embeds (YouTube, Twitter, etc.)</li>
-                    <li>Code syntax highlighting</li>
-                    <li>Frontmatter generation</li>
-                    <li>Real-time Markdown preview</li>
-                </ul>
-
-                <h3>Try it out!</h3>
-                <p>Start editing this content and watch the Markdown output update in real-time in the right panel.</p>
-
-                <blockquote>
-                    <p>"The best way to get started is to quit talking and begin doing." - Walt Disney</p>
-                </blockquote>
-            `;
+            const initialContent = 
+                '<h1>Welcome to the Astro Markdown Editor</h1>' +
+                '<p>This is a <strong>professional rich content editor</strong> that converts your content to <em>Astro-compatible Markdown</em> in real-time!</p>' +
+                '<h2>Key Features</h2>' +
+                '<ul>' +
+                    '<li>Full-featured rich text editing</li>' +
+                    '<li>Advanced table support</li>' +
+                    '<li>Media embeds (YouTube, Twitter, etc.)</li>' +
+                    '<li>Code syntax highlighting</li>' +
+                    '<li>Frontmatter generation</li>' +
+                    '<li>Real-time Markdown preview</li>' +
+                '</ul>' +
+                '<h3>Try it out!</h3>' +
+                '<p>Start editing this content and watch the Markdown output update in real-time in the right panel.</p>' +
+                '<blockquote>' +
+                    '<p>"The best way to get started is to quit talking and begin doing." - Walt Disney</p>' +
+                '</blockquote>';
             
             $('#summernote').summernote('code', initialContent);
             
@@ -782,96 +780,104 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         });
 
         // Initialize Turndown converter
-        const turndownService = new TurndownService({
-            headingStyle: 'atx',
-            codeBlockStyle: 'fenced',
-            bulletListMarker: '-'
-        });
-
-        // Add GFM plugin for better table support
-        turndownService.use(TurndownPluginGfm.tables);
-
-        // Custom rules for Astro compatibility
-        turndownService.addRule('customCodeBlock', {
-            filter: 'pre',
-            replacement: function(content, node) {
-                const language = node.className ? node.className.replace('language-', '') : '';
-                return '\\n\\n```' + language + '\\n' + content + '\\n```\\n\\n';
+        function initTurndown() {
+            if (typeof TurndownService === 'undefined') {
+                console.error('Turndown not loaded');
+                return null;
             }
-        });
+
+            const turndownService = new TurndownService({
+                headingStyle: 'atx',
+                codeBlockStyle: 'fenced',
+                bulletListMarker: '-'
+            });
+
+            // Add GFM plugin if available
+            if (typeof TurndownPluginGfm !== 'undefined') {
+                turndownService.use(TurndownPluginGfm.tables);
+            }
+
+            return turndownService;
+        }
 
         function updateMarkdown() {
+            const turndownService = initTurndown();
+            if (!turndownService) return;
+
             const html = $('#summernote').summernote('code');
             let markdown = turndownService.turndown(html);
             
             // Clean up extra line breaks
-            markdown = markdown.replace(/\\n\\n\\n+/g, '\\n\\n');
+            markdown = markdown.replace(/\n\n\n+/g, '\n\n');
             
             // Add frontmatter if exists
-            const finalMarkdown = frontmatter ? frontmatter + '\\n' + markdown : markdown;
+            const finalMarkdown = frontmatter ? frontmatter + '\n' + markdown : markdown;
             
-            document.getElementById('markdownOutput').textContent = finalMarkdown;
+            const outputElement = document.getElementById('markdownOutput');
+            if (outputElement) {
+                outputElement.textContent = finalMarkdown;
+            }
         }
 
         function updateWordCount() {
-            const text = $('#summernote').summernote('code').replace(/<[^>]*>/g, '');
-            const words = text.trim().split(/\\s+/).filter(word => word.length > 0).length;
+            const html = $('#summernote').summernote('code');
+            const text = html.replace(/<[^>]*>/g, '');
+            const words = text.trim().split(/\s+/).filter(function(word) { return word.length > 0; }).length;
             const characters = text.length;
-            document.getElementById('wordCount').textContent = `Words: ${words} | Characters: ${characters}`;
+            
+            const wordCountElement = document.getElementById('wordCount');
+            if (wordCountElement) {
+                wordCountElement.textContent = 'Words: ' + words + ' | Characters: ' + characters;
+            }
         }
 
         function updateLastModified() {
             const now = new Date().toLocaleTimeString();
-            document.getElementById('lastUpdated').textContent = now;
+            const lastUpdatedElement = document.getElementById('lastUpdated');
+            if (lastUpdatedElement) {
+                lastUpdatedElement.textContent = now;
+            }
         }
 
         function insertTemplate(type) {
             let content = '';
             
             if (type === 'blog') {
-                content = `
-                    <h1>My Amazing Blog Post</h1>
-                    <p><em>Published on ${new Date().toLocaleDateString()}</em></p>
-                    
-                    <h2>Introduction</h2>
-                    <p>Write your compelling introduction here. Hook your readers with an interesting fact, question, or statement.</p>
-                    
-                    <h2>Main Content</h2>
-                    <p>This is where your main content goes. You can add:</p>
-                    <ul>
-                        <li>Lists and bullet points</li>
-                        <li>Code examples and snippets</li>
-                        <li>Images and media</li>
-                        <li>Tables and data</li>
-                    </ul>
-                    
-                    <h2>Conclusion</h2>
-                    <p>Wrap up your post with a strong conclusion that summarizes your key points.</p>
-                `;
+                content = 
+                    '<h1>My Amazing Blog Post</h1>' +
+                    '<p><em>Published on ' + new Date().toLocaleDateString() + '</em></p>' +
+                    '<h2>Introduction</h2>' +
+                    '<p>Write your compelling introduction here. Hook your readers with an interesting fact, question, or statement.</p>' +
+                    '<h2>Main Content</h2>' +
+                    '<p>This is where your main content goes. You can add:</p>' +
+                    '<ul>' +
+                        '<li>Lists and bullet points</li>' +
+                        '<li>Code examples and snippets</li>' +
+                        '<li>Images and media</li>' +
+                        '<li>Tables and data</li>' +
+                    '</ul>' +
+                    '<h2>Conclusion</h2>' +
+                    '<p>Wrap up your post with a strong conclusion that summarizes your key points.</p>';
             } else if (type === 'docs') {
-                content = `
-                    <h1>Documentation Title</h1>
-                    <p>Brief description of what this documentation covers.</p>
-                    
-                    <h2>Table of Contents</h2>
-                    <ol>
-                        <li>Overview</li>
-                        <li>Getting Started</li>
-                        <li>API Reference</li>
-                        <li>Examples</li>
-                    </ol>
-                    
-                    <h2>Overview</h2>
-                    <p>Provide a high-level overview of the feature or API you're documenting.</p>
-                    
-                    <h2>Getting Started</h2>
-                    <p>Step-by-step instructions:</p>
-                    <ol>
-                        <li>Install the package</li>
-                        <li>Configure your project</li>
-                        <li>Run your first example</li>
-                    </ol>
-                `;
+                content = 
+                    '<h1>Documentation Title</h1>' +
+                    '<p>Brief description of what this documentation covers.</p>' +
+                    '<h2>Table of Contents</h2>' +
+                    '<ol>' +
+                        '<li>Overview</li>' +
+                        '<li>Getting Started</li>' +
+                        '<li>API Reference</li>' +
+                        '<li>Examples</li>' +
+                    '</ol>' +
+                    '<h2>Overview</h2>' +
+                    '<p>Provide a high-level overview of the feature or API you are documenting.</p>' +
+                    '<h2>Getting Started</h2>' +
+                    '<p>Step-by-step instructions:</p>' +
+                    '<ol>' +
+                        '<li>Install the package</li>' +
+                        '<li>Configure your project</li>' +
+                        '<li>Run your first example</li>' +
+                    '</ol>';
             }
             
             $('#summernote').summernote('code', content);
@@ -879,29 +885,28 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function insertTable() {
-            const tableHTML = `
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Header 1</th>
-                            <th>Header 2</th>
-                            <th>Header 3</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Cell 1</td>
-                            <td>Cell 2</td>
-                            <td>Cell 3</td>
-                        </tr>
-                        <tr>
-                            <td>Cell 4</td>
-                            <td>Cell 5</td>
-                            <td>Cell 6</td>
-                        </tr>
-                    </tbody>
-                </table>
-            `;
+            const tableHTML = 
+                '<table class="table table-bordered">' +
+                    '<thead>' +
+                        '<tr>' +
+                            '<th>Header 1</th>' +
+                            '<th>Header 2</th>' +
+                            '<th>Header 3</th>' +
+                        '</tr>' +
+                    '</thead>' +
+                    '<tbody>' +
+                        '<tr>' +
+                            '<td>Cell 1</td>' +
+                            '<td>Cell 2</td>' +
+                            '<td>Cell 3</td>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td>Cell 4</td>' +
+                            '<td>Cell 5</td>' +
+                            '<td>Cell 6</td>' +
+                        '</tr>' +
+                    '</tbody>' +
+                '</table>';
             $('#summernote').summernote('pasteHTML', tableHTML);
             updateMarkdown();
         }
@@ -916,11 +921,17 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function showModal(modalId) {
-            document.getElementById(modalId).style.display = 'block';
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'block';
+            }
         }
 
         function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+            }
         }
 
         function showFrontmatterModal() {
@@ -935,13 +946,18 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             const date = document.getElementById('fmDate').value;
             const draft = document.getElementById('fmDraft').value;
             
-            let fm = '---\\n';
-            if (title) fm += `title: "${title}"\\n`;
-            if (description) fm += `description: "${description}"\\n`;
-            if (author) fm += `author: "${author}"\\n`;
-            if (date) fm += `pubDate: "${date}"\\n`;
-            if (tags) fm += `tags: [${tags.split(',').map(tag => `"${tag.trim()}"`).join(', ')}]\\n`;
-            fm += `draft: ${draft}\\n`;
+            let fm = '---\n';
+            if (title) fm += 'title: "' + title + '"\n';
+            if (description) fm += 'description: "' + description + '"\n';
+            if (author) fm += 'author: "' + author + '"\n';
+            if (date) fm += 'pubDate: "' + date + '"\n';
+            if (tags) {
+                const tagArray = tags.split(',').map(function(tag) {
+                    return '"' + tag.trim() + '"';
+                }).join(', ');
+                fm += 'tags: [' + tagArray + ']\n';
+            }
+            fm += 'draft: ' + draft + '\n';
             fm += '---';
             
             frontmatter = fm;
@@ -962,28 +978,21 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             
             let embedHTML = '';
             
-            switch(type) {
-                case 'youtube':
-                    const videoId = extractYouTubeId(url);
-                    if (videoId) {
-                        embedHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-                    }
-                    break;
-                case 'twitter':
-                    embedHTML = `<!-- Twitter Embed: ${url} -->\\n<!-- Add Twitter embed script to your layout -->`;
-                    break;
-                case 'codepen':
-                    embedHTML = `<!-- CodePen Embed: ${url} -->\\n<!-- Add CodePen embed script to your layout -->`;
-                    break;
-                case 'vimeo':
-                    embedHTML = `<!-- Vimeo Embed: ${url} -->`;
-                    break;
-                case 'github':
-                    embedHTML = `<!-- GitHub Gist: ${url} -->`;
-                    break;
-                case 'iframe':
-                    embedHTML = `<iframe src="${url}" width="100%" height="400" frameborder="0"></iframe>`;
-                    break;
+            if (type === 'youtube') {
+                const videoId = extractYouTubeId(url);
+                if (videoId) {
+                    embedHTML = '<iframe width="560" height="315" src="https://www.youtube.com/embed/' + videoId + '" frameborder="0" allowfullscreen></iframe>';
+                }
+            } else if (type === 'twitter') {
+                embedHTML = '<!-- Twitter Embed: ' + url + ' -->\n<!-- Add Twitter embed script to your layout -->';
+            } else if (type === 'codepen') {
+                embedHTML = '<!-- CodePen Embed: ' + url + ' -->\n<!-- Add CodePen embed script to your layout -->';
+            } else if (type === 'vimeo') {
+                embedHTML = '<!-- Vimeo Embed: ' + url + ' -->';
+            } else if (type === 'github') {
+                embedHTML = '<!-- GitHub Gist: ' + url + ' -->';
+            } else if (type === 'iframe') {
+                embedHTML = '<iframe src="' + url + '" width="100%" height="400" frameborder="0"></iframe>';
             }
             
             if (embedHTML) {
@@ -995,34 +1004,59 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function extractYouTubeId(url) {
-            const regex = /(?:youtube\\.com\\/(?:[^\\/]+\\/.+\\/|(?:v|e(?:mbed)?)\\/|.*[?&]v=)|youtu\\.be\\/)([^"&?\\/\\s]{11})/;
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
             const match = url.match(regex);
             return match ? match[1] : null;
         }
 
         function copyMarkdown() {
-            const markdown = document.getElementById('markdownOutput').textContent;
-            navigator.clipboard.writeText(markdown).then(() => {
-                showToast('Markdown copied to clipboard!');
-            }).catch(() => {
-                const textarea = document.createElement('textarea');
-                textarea.value = markdown;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                showToast('Markdown copied to clipboard!');
-            });
+            const markdownOutput = document.getElementById('markdownOutput');
+            if (!markdownOutput) return;
+            
+            const markdown = markdownOutput.textContent;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(markdown).then(function() {
+                    showToast('Markdown copied to clipboard!');
+                }).catch(function() {
+                    fallbackCopyTextToClipboard(markdown);
+                });
+            } else {
+                fallbackCopyTextToClipboard(markdown);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('Markdown copied to clipboard!');
+                } else {
+                    showToast('Failed to copy markdown');
+                }
+            } catch (err) {
+                showToast('Failed to copy markdown');
+            }
+            
+            document.body.removeChild(textarea);
         }
 
         function showToast(message) {
             const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            if (toast) {
+                toast.textContent = message;
+                toast.classList.add('show');
+                
+                setTimeout(function() {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
         }
 
         function toggleFaq(element) {
@@ -1030,7 +1064,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             const isActive = answer.classList.contains('active');
             
             // Close all FAQ items
-            document.querySelectorAll('.faq-answer').forEach(item => {
+            const allAnswers = document.querySelectorAll('.faq-answer');
+            allAnswers.forEach(function(item) {
                 item.classList.remove('active');
             });
             
@@ -1050,11 +1085,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 's':
-                        e.preventDefault();
-                        copyMarkdown();
-                        break;
+                if (e.key === 's') {
+                    e.preventDefault();
+                    copyMarkdown();
                 }
             }
         });
