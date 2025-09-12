@@ -1,13 +1,17 @@
 ---
-import Layout from '../layouts/BlogPost.astro';
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 ---
+
 
 <Layout
 	title="Astro Rich Content Markdown Generator"
 	description="Convert Rich Content into Astro Markdown"
 	pubDate={new Date('August 08 2021')}
 	heroImage="/blog-placeholder-about.jpg"
->
+
 	<!DOCTYPE html>
 <html lang="en">
 <head>
