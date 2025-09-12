@@ -9,13 +9,6 @@ const description = "Convert rich text content to Astro-compatible Markdown inst
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
----
-import BaseHead from '../components/BaseHead.astro';
-
-const title = "Free Astro Markdown Editor | Rich Content to Markdown Converter";
-const description = "Convert rich text content to Astro-compatible Markdown instantly. Professional WYSIWYG editor with tables, embeds, code blocks, and frontmatter support. Free online tool.";
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
----
 
 <!DOCTYPE html>
 <html lang="en">
@@ -904,11 +897,28 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function updateMarkdown() {
-            if (!quill) return;
+            if (!quill) {
+                console.log('Quill not initialized yet');
+                return;
+            }
             
+            console.log('Updating markdown...');
             const html = quill.root.innerHTML;
-            const turndownService = initTurndown();
+            console.log('HTML content:', html);
+            
+            const turndownService = new TurndownService({
+                headingStyle: 'atx',
+                codeBlockStyle: 'fenced',
+                bulletListMarker: '-'
+            });
+
+            // Add GFM plugin for table support if available
+            if (typeof TurndownPluginGfm !== 'undefined') {
+                turndownService.use(TurndownPluginGfm.tables);
+            }
+
             let markdown = turndownService.turndown(html);
+            console.log('Generated markdown:', markdown);
             
             // Clean up extra line breaks
             markdown = markdown.replace(/\n\n\n+/g, '\n\n');
@@ -919,11 +929,17 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             const outputElement = document.getElementById('markdownOutput');
             if (outputElement) {
                 outputElement.textContent = finalMarkdown;
+                console.log('Markdown updated in output element');
+            } else {
+                console.error('Output element not found!');
             }
         }
 
         function updateWordCount() {
-            if (!quill) return;
+            if (!quill) {
+                console.log('Quill not initialized for word count');
+                return;
+            }
             
             const text = quill.getText();
             const words = text.trim().split(/\s+/).filter(function(word) { 
@@ -931,9 +947,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             }).length;
             const characters = text.length;
             
+            console.log('Word count:', words, 'Characters:', characters);
+            
             const wordCountElement = document.getElementById('wordCount');
             if (wordCountElement) {
                 wordCountElement.textContent = 'Words: ' + words + ' | Characters: ' + characters;
+            } else {
+                console.error('Word count element not found!');
             }
         }
 
@@ -942,6 +962,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             const lastUpdatedElement = document.getElementById('lastUpdated');
             if (lastUpdatedElement) {
                 lastUpdatedElement.textContent = now;
+            } else {
+                console.error('Last updated element not found!');
             }
         }
 
