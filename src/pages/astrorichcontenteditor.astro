@@ -37,32 +37,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown-plugin-gfm.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Structured Data -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Astro Markdown Editor",
-        "description": "Free online tool to convert rich text content to Astro-compatible Markdown with frontmatter support",
-        "url": "https://yoursite.com/astro-markdown-editor",
-        "applicationCategory": "DeveloperApplication",
-        "operatingSystem": "Web Browser",
-        "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
-        },
-        "featureList": [
-            "Rich text editing",
-            "Markdown conversion", 
-            "Table support",
-            "Code syntax highlighting",
-            "Embed support",
-            "Frontmatter generation"
-        ]
-    }
-    </script>
 
     <style>
         :root {
@@ -750,15 +724,15 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <div id="toast" class="toast"></div>
 
     <script>
-        let quill;
-        let frontmatter = '';
-        let turndownService = null;
+        var quill;
+        var frontmatter = '';
+        var turndownService = null;
 
         function waitForLibraries(callback) {
-            let attempts = 0;
-            const maxAttempts = 50;
+            var attempts = 0;
+            var maxAttempts = 50;
             
-            const checkLibraries = () => {
+            function checkLibraries() {
                 attempts++;
                 
                 if (typeof Quill !== 'undefined' && typeof TurndownService !== 'undefined') {
@@ -770,13 +744,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                 } else {
                     setTimeout(checkLibraries, 100);
                 }
-            };
+            }
             
             checkLibraries();
         }
 
         function showFallbackMessage() {
-            const outputElement = document.getElementById('markdownOutput');
+            var outputElement = document.getElementById('markdownOutput');
             if (outputElement) {
                 outputElement.innerHTML = '<span class="loading-indicator">Failed to load editor libraries. Please refresh the page.</span>';
             }
@@ -813,10 +787,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                         return node.nodeName === 'PRE' && node.firstChild && node.firstChild.nodeName === 'CODE';
                     },
                     replacement: function (content, node, options) {
-                        const codeElement = node.firstChild;
-                        const className = codeElement.getAttribute('class') || '';
-                        const language = className.replace(/.*language-(\w+).*/, '$1');
-                        const fence = options.fence || '```';
+                        var codeElement = node.firstChild;
+                        var className = codeElement.getAttribute('class') || '';
+                        var language = className.replace(/.*language-(\w+).*/, '$1');
+                        var fence = options.fence || '```';
                         
                         return '\n\n' + fence + (language !== className ? language : '') + '\n' + 
                                content.trim() + '\n' + fence + '\n\n';
@@ -828,9 +802,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                         return node.classList && node.classList.contains('embed-container');
                     },
                     replacement: function (content, node) {
-                        const embedType = node.dataset.embedType;
-                        const embedUrl = node.dataset.embedUrl;
-                        const embedId = node.dataset.embedId;
+                        var embedType = node.dataset.embedType;
+                        var embedUrl = node.dataset.embedUrl;
+                        var embedId = node.dataset.embedId;
                         
                         switch(embedType) {
                             case 'youtube':
@@ -842,7 +816,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                             case 'github':
                                 return '\n\n<!-- GitHub Gist: ' + embedUrl + ' -->\n<script src="' + embedUrl + '.js"></script>\n\n';
                             case 'vimeo':
-                                const vimeoId = embedUrl.match(/vimeo\.com\/(\d+)/);
+                                var vimeoId = embedUrl.match(/vimeo\.com\/(\d+)/);
                                 return vimeoId ? '\n\n<iframe src="https://player.vimeo.com/video/' + vimeoId[1] + '" width="640" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>\n\n' : '\n\n<!-- Vimeo: ' + embedUrl + ' -->\n\n';
                             case 'iframe':
                                 return '\n\n<iframe src="' + embedUrl + '" width="100%" height="400" frameborder="0"></iframe>\n\n';
@@ -877,7 +851,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                 }
 
                 try {
-                    const toolbarOptions = [
+                    var toolbarOptions = [
                         [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
                         ['bold', 'italic', 'underline', 'strike'],
                         [{ 'color': [] }, { 'background': [] }],
@@ -898,7 +872,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                         placeholder: 'Start writing your amazing content here...\n\nUse the toolbar above for formatting, or try the custom buttons for special features like tables, embeds and templates!'
                     });
 
-                    const initialContent = {
+                    var initialContent = {
                         "ops": [
                             {"insert": "Welcome to the Astro Markdown Editor"},
                             {"attributes": {"header": 1}, "insert": "\n"},
@@ -935,7 +909,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
                     quill.setContents(initialContent);
 
-                    let updateTimeout;
+                    var updateTimeout;
                     quill.on('text-change', function() {
                         clearTimeout(updateTimeout);
                         updateTimeout = setTimeout(function() {
@@ -966,23 +940,23 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             }
             
             try {
-                const html = quill.root.innerHTML;
-                let markdown = turndownService.turndown(html);
+                var html = quill.root.innerHTML;
+                var markdown = turndownService.turndown(html);
                 
                 markdown = markdown
                     .replace(/\n\n\n+/g, '\n\n')
                     .replace(/^\n+/, '')
                     .replace(/\n+$/, '\n');
                 
-                const finalMarkdown = frontmatter ? frontmatter + '\n' + markdown : markdown;
+                var finalMarkdown = frontmatter ? frontmatter + '\n' + markdown : markdown;
                 
-                const outputElement = document.getElementById('markdownOutput');
+                var outputElement = document.getElementById('markdownOutput');
                 if (outputElement) {
                     outputElement.textContent = finalMarkdown;
                 }
             } catch (error) {
                 console.error('Error converting to markdown:', error);
-                const outputElement = document.getElementById('markdownOutput');
+                var outputElement = document.getElementById('markdownOutput');
                 if (outputElement) {
                     outputElement.innerHTML = '<span class="loading-indicator">Error converting to markdown. Please try again.</span>';
                 }
@@ -993,13 +967,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             if (!quill) return;
             
             try {
-                const text = quill.getText();
-                const words = text.trim().split(/\s+/).filter(word => word.length > 0).length;
-                const characters = text.length;
+                var text = quill.getText();
+                var words = text.trim().split(/\s+/).filter(function(word) { return word.length > 0; }).length;
+                var characters = text.length;
                 
-                const wordCountElement = document.getElementById('wordCount');
+                var wordCountElement = document.getElementById('wordCount');
                 if (wordCountElement) {
-                    wordCountElement.textContent = `Words: ${words} | Characters: ${characters}`;
+                    wordCountElement.textContent = 'Words: ' + words + ' | Characters: ' + characters;
                 }
             } catch (error) {
                 console.error('Error updating word count:', error);
@@ -1008,8 +982,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
         function updateLastModified() {
             try {
-                const now = new Date().toLocaleTimeString();
-                const lastUpdatedElement = document.getElementById('lastUpdated');
+                var now = new Date().toLocaleTimeString();
+                var lastUpdatedElement = document.getElementById('lastUpdated');
                 if (lastUpdatedElement) {
                     lastUpdatedElement.textContent = now;
                 }
@@ -1021,7 +995,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         function insertTemplate(type) {
             if (!quill) return;
             
-            let delta;
+            var delta;
             
             if (type === 'blog') {
                 delta = {
@@ -1100,7 +1074,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         function insertTable() {
             if (!quill) return;
             
-            const tableHTML = '<table>' +
+            var tableHTML = '<table>' +
                 '<thead>' +
                     '<tr>' +
                         '<th>Header 1</th>' +
@@ -1122,7 +1096,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                 '</tbody>' +
             '</table>';
             
-            const range = quill.getSelection() || { index: quill.getLength() };
+            var range = quill.getSelection() || { index: quill.getLength() };
             quill.clipboard.dangerouslyPasteHTML(range.index, tableHTML);
             updateMarkdown();
             showToast('Table added successfully!');
@@ -1140,14 +1114,14 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function showModal(modalId) {
-            const modal = document.getElementById(modalId);
+            var modal = document.getElementById(modalId);
             if (modal) {
                 modal.style.display = 'block';
             }
         }
 
         function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
+            var modal = document.getElementById(modalId);
             if (modal) {
                 modal.style.display = 'none';
             }
@@ -1158,23 +1132,25 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function insertFrontmatter() {
-            const title = document.getElementById('fmTitle').value;
-            const description = document.getElementById('fmDescription').value;
-            const author = document.getElementById('fmAuthor').value;
-            const tags = document.getElementById('fmTags').value;
-            const date = document.getElementById('fmDate').value;
-            const draft = document.getElementById('fmDraft').value;
+            var title = document.getElementById('fmTitle').value;
+            var description = document.getElementById('fmDescription').value;
+            var author = document.getElementById('fmAuthor').value;
+            var tags = document.getElementById('fmTags').value;
+            var date = document.getElementById('fmDate').value;
+            var draft = document.getElementById('fmDraft').value;
             
-            let fm = '---\n';
-            if (title) fm += `title: "${title}"\n`;
-            if (description) fm += `description: "${description}"\n`;
-            if (author) fm += `author: "${author}"\n`;
-            if (date) fm += `pubDate: "${date}"\n`;
+            var fm = '---\n';
+            if (title) fm += 'title: "' + title + '"\n';
+            if (description) fm += 'description: "' + description + '"\n';
+            if (author) fm += 'author: "' + author + '"\n';
+            if (date) fm += 'pubDate: "' + date + '"\n';
             if (tags) {
-                const tagArray = tags.split(',').map(tag => `"${tag.trim()}"`).join(', ');
-                fm += `tags: [${tagArray}]\n`;
+                var tagArray = tags.split(',').map(function(tag) {
+                    return '"' + tag.trim() + '"';
+                }).join(', ');
+                fm += 'tags: [' + tagArray + ']\n';
             }
-            fm += `draft: ${draft}\n`;
+            fm += 'draft: ' + draft + '\n';
             fm += '---';
             
             frontmatter = fm;
@@ -1190,57 +1166,57 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         function insertEmbed() {
             if (!quill) return;
             
-            const type = document.getElementById('embedType').value;
-            const url = document.getElementById('embedURL').value;
+            var type = document.getElementById('embedType').value;
+            var url = document.getElementById('embedURL').value;
             
             if (!url) {
                 showToast('Please enter a valid URL');
                 return;
             }
             
-            let embedHTML = '';
+            var embedHTML = '';
             
             if (type === 'youtube') {
-                const videoId = extractYouTubeId(url);
+                var videoId = extractYouTubeId(url);
                 if (videoId) {
-                    embedHTML = `<div class="embed-container" data-embed-type="youtube" data-embed-id="${videoId}" data-embed-url="${url}">
-                        <p>📺 YouTube Video: ${url}</p>
-                        <p><em>This will be converted to an iframe in the markdown output</em></p>
-                    </div>`;
+                    embedHTML = '<div class="embed-container" data-embed-type="youtube" data-embed-id="' + videoId + '" data-embed-url="' + url + '">' +
+                        '<p>📺 YouTube Video: ' + url + '</p>' +
+                        '<p><em>This will be converted to an iframe in the markdown output</em></p>' +
+                    '</div>';
                 } else {
                     showToast('Invalid YouTube URL');
                     return;
                 }
             } else if (type === 'twitter') {
-                embedHTML = `<div class="embed-container" data-embed-type="twitter" data-embed-url="${url}">
-                    <p>🐦 Twitter Post: ${url}</p>
-                    <p><em>This will be converted to a Twitter embed in the markdown output</em></p>
-                </div>`;
+                embedHTML = '<div class="embed-container" data-embed-type="twitter" data-embed-url="' + url + '">' +
+                    '<p>🐦 Twitter Post: ' + url + '</p>' +
+                    '<p><em>This will be converted to a Twitter embed in the markdown output</em></p>' +
+                '</div>';
             } else if (type === 'codepen') {
-                embedHTML = `<div class="embed-container" data-embed-type="codepen" data-embed-url="${url}">
-                    <p>💻 CodePen: ${url}</p>
-                    <p><em>This will be converted to a CodePen embed in the markdown output</em></p>
-                </div>`;
+                embedHTML = '<div class="embed-container" data-embed-type="codepen" data-embed-url="' + url + '">' +
+                    '<p>💻 CodePen: ' + url + '</p>' +
+                    '<p><em>This will be converted to a CodePen embed in the markdown output</em></p>' +
+                '</div>';
             } else if (type === 'vimeo') {
-                embedHTML = `<div class="embed-container" data-embed-type="vimeo" data-embed-url="${url}">
-                    <p>🎬 Vimeo Video: ${url}</p>
-                    <p><em>This will be converted to a Vimeo embed in the markdown output</em></p>
-                </div>`;
+                embedHTML = '<div class="embed-container" data-embed-type="vimeo" data-embed-url="' + url + '">' +
+                    '<p>🎬 Vimeo Video: ' + url + '</p>' +
+                    '<p><em>This will be converted to a Vimeo embed in the markdown output</em></p>' +
+                '</div>';
             } else if (type === 'github') {
-                embedHTML = `<div class="embed-container" data-embed-type="github" data-embed-url="${url}">
-                    <p>💻 GitHub Gist: ${url}</p>
-                    <p><em>This will be converted to a GitHub embed in the markdown output</em></p>
-                </div>`;
+                embedHTML = '<div class="embed-container" data-embed-type="github" data-embed-url="' + url + '">' +
+                    '<p>💻 GitHub Gist: ' + url + '</p>' +
+                    '<p><em>This will be converted to a GitHub embed in the markdown output</em></p>' +
+                '</div>';
             } else if (type === 'iframe') {
-                embedHTML = `<div class="embed-container" data-embed-type="iframe" data-embed-url="${url}">
-                    <p>🌐 Custom Embed: ${url}</p>
-                    <p><em>This will be converted to an iframe in the markdown output</em></p>
-                </div>`;
+                embedHTML = '<div class="embed-container" data-embed-type="iframe" data-embed-url="' + url + '">' +
+                    '<p>🌐 Custom Embed: ' + url + '</p>' +
+                    '<p><em>This will be converted to an iframe in the markdown output</em></p>' +
+                '</div>';
             }
             
             if (embedHTML) {
-                const range = quill.getSelection();
-                const index = range ? range.index : quill.getLength();
+                var range = quill.getSelection();
+                var index = range ? range.index : quill.getLength();
                 quill.clipboard.dangerouslyPasteHTML(index, embedHTML);
                 updateMarkdown();
                 closeModal('embedModal');
@@ -1249,21 +1225,21 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function extractYouTubeId(url) {
-            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-            const match = url.match(regex);
+            var regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            var match = url.match(regex);
             return match ? match[1] : null;
         }
 
         function copyMarkdown() {
-            const markdownOutput = document.getElementById('markdownOutput');
+            var markdownOutput = document.getElementById('markdownOutput');
             if (!markdownOutput) return;
             
-            const markdown = markdownOutput.textContent;
+            var markdown = markdownOutput.textContent;
             
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(markdown).then(() => {
+                navigator.clipboard.writeText(markdown).then(function() {
                     showToast('Markdown copied to clipboard!');
-                }).catch(() => {
+                }).catch(function() {
                     fallbackCopyTextToClipboard(markdown);
                 });
             } else {
@@ -1272,14 +1248,14 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function fallbackCopyTextToClipboard(text) {
-            const textarea = document.createElement('textarea');
+            var textarea = document.createElement('textarea');
             textarea.value = text;
             document.body.appendChild(textarea);
             textarea.focus();
             textarea.select();
             
             try {
-                const successful = document.execCommand('copy');
+                var successful = document.execCommand('copy');
                 if (successful) {
                     showToast('Markdown copied to clipboard!');
                 } else {
@@ -1293,23 +1269,23 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function showToast(message) {
-            const toast = document.getElementById('toast');
+            var toast = document.getElementById('toast');
             if (toast) {
                 toast.textContent = message;
                 toast.classList.add('show');
                 
-                setTimeout(() => {
+                setTimeout(function() {
                     toast.classList.remove('show');
                 }, 3000);
             }
         }
 
         function toggleFaq(element) {
-            const answer = element.nextElementSibling;
-            const isActive = answer.classList.contains('active');
+            var answer = element.nextElementSibling;
+            var isActive = answer.classList.contains('active');
             
-            const allAnswers = document.querySelectorAll('.faq-answer');
-            allAnswers.forEach(item => {
+            var allAnswers = document.querySelectorAll('.faq-answer');
+            allAnswers.forEach(function(item) {
                 item.classList.remove('active');
             });
             
