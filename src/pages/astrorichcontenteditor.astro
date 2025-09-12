@@ -1,0 +1,1054 @@
+---
+import Layout from '../layouts/BlogPost.astro';
+---
+
+<Layout
+	title="Astro Rich Content Markdown Generator"
+	description="Convert Rich Content into Astro Markdown"
+	pubDate={new Date('August 08 2021')}
+	heroImage="/blog-placeholder-about.jpg"
+>
+	<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astro Markdown Rich Content Editor</title>
+    
+    <!-- Quill.js CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.snow.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.min.js"></script>
+    
+    <!-- Turndown for HTML to Markdown conversion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown.min.js"></script>
+    
+    <!-- Turndown plugin for tables -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown-plugin-gfm.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.95;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: flex;
+            min-height: calc(100vh - 200px);
+        }
+
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e1e5e9;
+        }
+
+        .editor-header {
+            background: #f8fafc;
+            padding: 20px;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-header h3 {
+            color: #334155;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .custom-toolbar {
+            padding: 10px 20px;
+            background: #ffffff;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0 10px;
+            border-right: 1px solid #e1e5e9;
+        }
+
+        .toolbar-group:last-child {
+            border-right: none;
+        }
+
+        .custom-button {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #374151;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .custom-button:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .custom-button.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .editor-container {
+            flex: 1;
+            padding: 20px;
+            background: white;
+        }
+
+        .quill-editor {
+            height: 100%;
+            min-height: 500px;
+        }
+
+        .ql-toolbar {
+            border: 1px solid #e1e5e9 !important;
+            border-bottom: none !important;
+            border-radius: 8px 8px 0 0 !important;
+            background: #f8fafc !important;
+        }
+
+        .ql-container {
+            border: 1px solid #e1e5e9 !important;
+            border-top: none !important;
+            border-radius: 0 0 8px 8px !important;
+            font-size: 16px !important;
+            line-height: 1.6 !important;
+        }
+
+        .ql-editor {
+            min-height: 450px;
+            padding: 20px !important;
+        }
+
+        .ql-editor h1 { font-size: 2em !important; margin: 1em 0 0.5em 0 !important; }
+        .ql-editor h2 { font-size: 1.5em !important; margin: 1em 0 0.5em 0 !important; }
+        .ql-editor h3 { font-size: 1.17em !important; margin: 1em 0 0.5em 0 !important; }
+
+        .output-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #1e293b;
+        }
+
+        .output-header {
+            background: #0f172a;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .output-header h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .copy-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .copy-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .output-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .markdown-output {
+            background: #1e293b;
+            color: #e2e8f0;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            min-height: 400px;
+        }
+
+        .feature-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: #1f2937;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .modal input, .modal textarea, .modal select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 16px 0;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .modal textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'SF Mono', 'Monaco', monospace;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.cancel {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .modal-btn.primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 20000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .stats {
+            background: #f8fafc;
+            padding: 15px 20px;
+            border-top: 1px solid #e1e5e9;
+            font-size: 13px;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .editor-panel, .output-panel {
+                min-height: 50vh;
+            }
+
+            .custom-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toolbar-group {
+                border-right: none;
+                border-bottom: 1px solid #e1e5e9;
+                padding: 10px 0;
+                justify-content: center;
+            }
+
+            .feature-buttons {
+                justify-content: center;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .modal-content {
+                margin: 20px auto;
+                width: 95%;
+            }
+        }
+
+        /* Custom Quill styles */
+        .ql-toolbar .ql-formats {
+            margin-right: 15px;
+        }
+
+        .ql-toolbar button {
+            padding: 5px !important;
+        }
+
+        .ql-toolbar button:hover {
+            color: #3b82f6 !important;
+        }
+
+        .ql-toolbar .ql-active {
+            color: #3b82f6 !important;
+        }
+
+        /* Syntax highlighting in output */
+        .markdown-output .hljs {
+            background: #2d3748;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Astro Markdown Editor</h1>
+            <p>Professional rich content editor powered by Quill.js with real-time Astro-compatible Markdown conversion</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="editor-panel">
+                <div class="editor-header">
+                    <h3>📝 Rich Content Editor</h3>
+                    <div class="feature-buttons">
+                        <button class="custom-button" onclick="insertTemplate('blog')">
+                            📄 Blog Template
+                        </button>
+                        <button class="custom-button" onclick="insertTemplate('docs')">
+                            📚 Docs Template
+                        </button>
+                        <button class="custom-button" onclick="showEmbedModal()">
+                            🎬 Add Embed
+                        </button>
+                        <button class="custom-button" onclick="showFrontmatterModal()">
+                            ⚙️ Frontmatter
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="custom-toolbar">
+                    <div class="toolbar-group">
+                        <button class="custom-button" onclick="insertYouTube()">
+                            📺 YouTube
+                        </button>
+                        <button class="custom-button" onclick="insertTwitter()">
+                            🐦 Twitter
+                        </button>
+                        <button class="custom-button" onclick="insertCodePen()">
+                            💻 CodePen
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button class="custom-button" onclick="insertCallout('info')">
+                            ℹ️ Info
+                        </button>
+                        <button class="custom-button" onclick="insertCallout('warning')">
+                            ⚠️ Warning
+                        </button>
+                        <button class="custom-button" onclick="insertCallout('tip')">
+                            💡 Tip
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button class="custom-button" onclick="insertFootnote()">
+                            📝 Footnote
+                        </button>
+                        <button class="custom-button" onclick="insertTOC()">
+                            📑 TOC
+                        </button>
+                        <button class="custom-button" onclick="clearEditor()">
+                            🗑️ Clear
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="editor-container">
+                    <div id="quill-editor" class="quill-editor"></div>
+                </div>
+                
+                <div class="stats">
+                    <span id="wordCount">Words: 0 | Characters: 0</span>
+                    <span>Last updated: <span id="lastUpdated">Never</span></span>
+                </div>
+            </div>
+            
+            <div class="output-panel">
+                <div class="output-header">
+                    <h3>📄 Astro Markdown Output</h3>
+                    <button class="copy-btn" onclick="copyMarkdown()">
+                        📋 Copy Markdown
+                    </button>
+                </div>
+                <div class="output-content">
+                    <div id="markdownOutput" class="markdown-output"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="embedModal" class="modal">
+        <div class="modal-content">
+            <h3>🎬 Insert Embed</h3>
+            <label>Embed Type:</label>
+            <select id="embedType">
+                <option value="youtube">YouTube Video</option>
+                <option value="twitter">Twitter Post</option>
+                <option value="codepen">CodePen</option>
+                <option value="iframe">Custom Iframe</option>
+                <option value="vimeo">Vimeo</option>
+                <option value="github">GitHub Gist</option>
+            </select>
+            <label>URL or Embed Code:</label>
+            <input type="text" id="embedURL" placeholder="Paste your URL here...">
+            <label>Width (optional):</label>
+            <input type="text" id="embedWidth" placeholder="100%" value="100%">
+            <label>Height (optional):</label>
+            <input type="text" id="embedHeight" placeholder="400px" value="400px">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeModal('embedModal')">Cancel</button>
+                <button class="modal-btn primary" onclick="insertEmbed()">Insert Embed</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="frontmatterModal" class="modal">
+        <div class="modal-content">
+            <h3>⚙️ Document Frontmatter</h3>
+            <label>Title:</label>
+            <input type="text" id="fmTitle" placeholder="Your awesome post title">
+            <label>Description:</label>
+            <textarea id="fmDescription" placeholder="A brief description of your content"></textarea>
+            <label>Author:</label>
+            <input type="text" id="fmAuthor" placeholder="Your name">
+            <label>Tags (comma-separated):</label>
+            <input type="text" id="fmTags" placeholder="astro, markdown, blog">
+            <label>Date:</label>
+            <input type="date" id="fmDate">
+            <label>Draft:</label>
+            <select id="fmDraft">
+                <option value="false">Published</option>
+                <option value="true">Draft</option>
+            </select>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeModal('frontmatterModal')">Cancel</button>
+                <button class="modal-btn primary" onclick="insertFrontmatter()">Apply Frontmatter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let quill;
+        let frontmatter = '';
+        
+        // Initialize Quill editor
+        document.addEventListener('DOMContentLoaded', function() {
+            // Quill configuration
+            const toolbarOptions = [
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'script': 'sub'}, { 'script': 'super' }],
+                ['blockquote', 'code-block'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                [{ 'align': [] }],
+                ['link', 'image', 'video'],
+                ['table'],
+                ['clean']
+            ];
+
+            quill = new Quill('#quill-editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: toolbarOptions,
+                    table: true
+                },
+                placeholder: 'Start writing your amazing content here...\n\nTip: Use the toolbar above for formatting, or try the custom buttons for special features like embeds and templates!'
+            });
+
+            // Initialize with sample content
+            const delta = {
+                "ops": [
+                    {"insert": "Welcome to the Astro Markdown Editor"},
+                    {"attributes": {"header": 1}, "insert": "\n"},
+                    {"insert": "\nThis is a "},
+                    {"attributes": {"bold": true}, "insert": "powerful rich content editor"},
+                    {"insert": " that converts your content to "},
+                    {"attributes": {"italic": true}, "insert": "Astro-compatible Markdown"},
+                    {"insert": " in real-time!\n\n"},
+                    {"insert": "Key Features"},
+                    {"attributes": {"header": 2}, "insert": "\n"},
+                    {"insert": "\nFull-featured rich text editing with Quill.js"},
+                    {"attributes": {"list": "bullet"}, "insert": "\n"},
+                    {"insert": "Tables, images, links, and code blocks"},
+                    {"attributes": {"list": "bullet"}, "insert": "\n"},
+                    {"insert": "YouTube, Twitter, and other embeds"},
+                    {"attributes": {"list": "bullet"}, "insert": "\n"},
+                    {"insert": "Frontmatter support for Astro"},
+                    {"attributes": {"list": "bullet"}, "insert": "\n"},
+                    {"insert": "Real-time Markdown preview"},
+                    {"attributes": {"list": "bullet"}, "insert": "\n"},
+                    {"insert": "\n"},
+                    {"insert": "Try it out!"},
+                    {"attributes": {"header": 3}, "insert": "\n"},
+                    {"insert": "\nStart typing, formatting, and watch the magic happen in the right panel. The Markdown output is ready to paste into your Astro project!\n\n"},
+                    {"insert": "This is a code snippet: "},
+                    {"attributes": {"code": true}, "insert": "console.log('Hello Astro!')"},
+                    {"insert": "\n\nAnd here's a blockquote:"},
+                    {"insert": "\n"},
+                    {"insert": "\"The best way to get started is to quit talking and begin doing.\" - Walt Disney"},
+                    {"attributes": {"blockquote": true}, "insert": "\n"}
+                ]
+            };
+            
+            quill.setContents(delta);
+
+            // Listen for content changes
+            quill.on('text-change', function() {
+                updateMarkdown();
+                updateWordCount();
+                updateLastModified();
+            });
+
+            // Initial conversion
+            updateMarkdown();
+            updateWordCount();
+            updateLastModified();
+        });
+
+        // Initialize Turndown converter
+        const turndownService = new TurndownService({
+            headingStyle: 'atx',
+            codeBlockStyle: 'fenced',
+            bulletListMarker: '-'
+        });
+
+        // Add GFM plugin for better table support
+        turndownService.use(TurndownPluginGfm.tables);
+
+        // Custom rules for better Astro compatibility
+        turndownService.addRule('customCodeBlock', {
+            filter: 'pre',
+            replacement: function(content, node) {
+                const language = node.querySelector('code') ? 
+                    (node.querySelector('code').className.replace('language-', '').replace('ql-syntax', '') || '') : '';
+                return '\n\n```' + language + '\n' + content + '\n```\n\n';
+            }
+        });
+
+        // Custom rule for embeds
+        turndownService.addRule('embeds', {
+            filter: function(node) {
+                return node.classList && node.classList.contains('embed-container');
+            },
+            replacement: function(content, node) {
+                const embedType = node.dataset.embedType;
+                const embedUrl = node.dataset.embedUrl;
+                const embedId = node.dataset.embedId;
+                
+                switch(embedType) {
+                    case 'youtube':
+                        return `\n\n<iframe width="560" height="315" src="https://www.youtube.com/embed/${embedId}" frameborder="0" allowfullscreen></iframe>\n\n`;
+                    case 'twitter':
+                        return `\n\n<!-- Twitter Embed: ${embedUrl} -->\n<!-- Remember to add Twitter script to your Astro layout -->\n\n`;
+                    case 'codepen':
+                        return `\n\n<!-- CodePen Embed: ${embedUrl} -->\n<!-- Remember to add CodePen script to your Astro layout -->\n\n`;
+                    case 'iframe':
+                        return `\n\n<iframe src="${embedUrl}" width="100%" height="400" frameborder="0"></iframe>\n\n`;
+                    default:
+                        return '\n\n<!-- Custom Embed -->\n\n';
+                }
+            }
+        });
+
+        // Custom rule for callouts
+        turndownService.addRule('callouts', {
+            filter: function(node) {
+                return node.classList && node.classList.contains('callout');
+            },
+            replacement: function(content, node) {
+                const type = node.dataset.calloutType || 'info';
+                return `\n\n:::${type}\n${content.trim()}\n:::\n\n`;
+            }
+        });
+
+        function updateMarkdown() {
+            const html = quill.root.innerHTML;
+            let markdown = turndownService.turndown(html);
+            
+            // Clean up extra line breaks
+            markdown = markdown.replace(/\n\n\n+/g, '\n\n');
+            
+            // Add frontmatter if exists
+            const finalMarkdown = frontmatter ? frontmatter + '\n' + markdown : markdown;
+            
+            document.getElementById('markdownOutput').textContent = finalMarkdown;
+        }
+
+        function updateWordCount() {
+            const text = quill.getText();
+            const words = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+            const characters = text.length;
+            document.getElementById('wordCount').textContent = `Words: ${words} | Characters: ${characters}`;
+        }
+
+        function updateLastModified() {
+            const now = new Date().toLocaleTimeString();
+            document.getElementById('lastUpdated').textContent = now;
+        }
+
+        function insertTemplate(type) {
+            let delta;
+            
+            if (type === 'blog') {
+                delta = {
+                    "ops": [
+                        {"insert": "My Amazing Blog Post"},
+                        {"attributes": {"header": 1}, "insert": "\n"},
+                        {"insert": "\nPublished on " + new Date().toLocaleDateString()},
+                        {"insert": "\n\n"},
+                        {"insert": "Introduction"},
+                        {"attributes": {"header": 2}, "insert": "\n"},
+                        {"insert": "\nWrite your compelling introduction here. Hook your readers with an interesting fact, question, or statement.\n\n"},
+                        {"insert": "Main Content"},
+                        {"attributes": {"header": 2}, "insert": "\n"},
+                        {"insert": "\nThis is where your main content goes. You can add:"},
+                        {"insert": "\n"},
+                        {"insert": "Lists and bullet points"},
+                        {"attributes": {"list": "bullet"}, "insert": "\n"},
+                        {"insert": "Code examples and snippets"},
+                        {"attributes": {"list": "bullet"}, "insert": "\n"},
+                        {"insert": "Images and media"},
+                        {"attributes": {"list": "bullet"}, "insert": "\n"},
+                        {"insert": "Tables and data"},
+                        {"attributes": {"list": "bullet"}, "insert": "\n"},
+                        {"insert": "\n"},
+                        {"insert": "Conclusion"},
+                        {"attributes": {"header": 2}, "insert": "\n"},
+                        {"insert": "\nWrap up your post with a strong conclusion that summarizes your key points and provides value to your readers.\n"}
+                    ]
+                };
+            } else if (type === 'docs') {
+                delta = {
+                    "ops": [
+                        {"insert": "Documentation Title"},
+                        {"attributes": {"header": 1}, "insert": "\n"},
+                        {"insert": "\nBrief description of what this documentation covers.\n\n"},
+                        {"insert": "Table of Contents"},
+                        {"attributes": {"header": 2}, "insert": "\n"},
+                        {"insert": "\nOverview"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "Getting Started"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "API Reference"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "Examples"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "Troubleshooting"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "\n"},
+                        {"insert": "Overview"},
+                        {"attributes": {"header": 2}, "insert": "\n"},
+                        {"insert": "\nProvide a high-level overview of the feature or API you're documenting.\n\n"},
+                        {"insert": "Getting Started"},
+                        {"attributes": {"header": 2}, "insert": "\n"},
+                        {"insert": "\nStep-by-step instructions for getting started:\n\n"},
+                        {"insert": "Install the package"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "Configure your project"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "Run your first example"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "\n"},
+                        {"insert": "Example Code"},
+                        {"attributes": {"header": 3}, "insert": "\n"},
+                        {"insert": "\n"},
+                        {"insert": "// Your example code here\nconst example = 'Hello, World!';"},
+                        {"attributes": {"code-block": true}, "insert": "\n"},
+                        {"insert": "\n"}
+                    ]
+                };
+            }
+            
+            quill.setContents(delta);
+            updateMarkdown();
+        }
+
+        function insertYouTube() {
+            const url = prompt('Enter YouTube URL:');
+            if (url) {
+                const videoId = extractYouTubeId(url);
+                if (videoId) {
+                    const embedHTML = `<div class="embed-container" data-embed-type="youtube" data-embed-id="${videoId}" data-embed-url="${url}">
+                        <p>📺 YouTube Video: ${url}</p>
+                        <p><em>This will be converted to an iframe in the markdown output</em></p>
+                    </div>`;
+                    
+                    const range = quill.getSelection();
+                    quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
+                    updateMarkdown();
+                } else {
+                    showToast('Invalid YouTube URL');
+                }
+            }
+        }
+
+        function insertTwitter() {
+            const url = prompt('Enter Twitter post URL:');
+            if (url) {
+                const embedHTML = `<div class="embed-container" data-embed-type="twitter" data-embed-url="${url}">
+                    <p>🐦 Twitter Post: ${url}</p>
+                    <p><em>This will be converted to a Twitter embed in the markdown output</em></p>
+                </div>`;
+                
+                const range = quill.getSelection();
+                quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
+                updateMarkdown();
+            }
+        }
+
+        function insertCodePen() {
+            const url = prompt('Enter CodePen URL:');
+            if (url) {
+                const embedHTML = `<div class="embed-container" data-embed-type="codepen" data-embed-url="${url}">
+                    <p>💻 CodePen: ${url}</p>
+                    <p><em>This will be converted to a CodePen embed in the markdown output</em></p>
+                </div>`;
+                
+                const range = quill.getSelection();
+                quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
+                updateMarkdown();
+            }
+        }
+
+        function insertCallout(type) {
+            const text = prompt(`Enter ${type} message:`);
+            if (text) {
+                const icons = { info: 'ℹ️', warning: '⚠️', tip: '💡' };
+                const colors = { 
+                    info: 'background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px;', 
+                    warning: 'background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px;',
+                    tip: 'background: #d1fae5; border-left: 4px solid #10b981; padding: 15px;'
+                };
+                
+                const calloutHTML = `<div class="callout" data-callout-type="${type}" style="${colors[type]}">
+                    <p><strong>${icons[type]} ${type.charAt(0).toUpperCase() + type.slice(1)}</strong></p>
+                    <p>${text}</p>
+                </div>`;
+                
+                const range = quill.getSelection();
+                quill.clipboard.dangerouslyPasteHTML(range.index, calloutHTML);
+                updateMarkdown();
+            }
+        }
+
+        function insertFootnote() {
+            const text = prompt('Enter footnote text:');
+            if (text) {
+                const footnoteNum = Date.now().toString().slice(-4);
+                const footnoteHTML = `<sup><a href="#fn${footnoteNum}" id="ref${footnoteNum}">${footnoteNum}</a></sup>`;
+                
+                const range = quill.getSelection();
+                quill.clipboard.dangerouslyPasteHTML(range.index, footnoteHTML);
+                
+                // Add footnote at the end
+                const currentLength = quill.getLength();
+                quill.clipboard.dangerouslyPasteHTML(currentLength, 
+                    `\n\n<p id="fn${footnoteNum}"><small>${footnoteNum}. ${text} <a href="#ref${footnoteNum}">↩</a></small></p>`);
+                
+                updateMarkdown();
+            }
+        }
+
+        function insertTOC() {
+            const tocHTML = `<div class="toc">
+                <p><strong>📑 Table of Contents</strong></p>
+                <p><em>This will be automatically generated based on your headings</em></p>
+            </div>`;
+            
+            const range = quill.getSelection();
+            quill.clipboard.dangerouslyPasteHTML(range.index, tocHTML);
+            updateMarkdown();
+        }
+
+        function clearEditor() {
+            if (confirm('Are you sure you want to clear all content?')) {
+                quill.setText('');
+                frontmatter = '';
+                updateMarkdown();
+                showToast('Editor cleared');
+            }
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function showEmbedModal() {
+            showModal('embedModal');
+        }
+
+        function insertEmbed() {
+            const type = document.getElementById('embedType').value;
+            const url = document.getElementById('embedURL').value;
+            const width = document.getElementById('embedWidth').value || '100%';
+            const height = document.getElementById('embedHeight').value || '400px';
+            
+            if (url) {
+                let embedHTML = '';
+                let embedId = '';
+                
+                switch(type) {
+                    case 'youtube':
+                        embedId = extractYouTubeId(url);
+                        embedHTML = `<div class="embed-container" data-embed-type="youtube" data-embed-id="${embedId}" data-embed-url="${url}">
+                            <p>📺 YouTube Video: ${url}</p>
+                        </div>`;
+                        break;
+                    case 'twitter':
+                        embedHTML = `<div class="embed-container" data-embed-type="twitter" data-embed-url="${url}">
+                            <p>🐦 Twitter Post: ${url}</p>
+                        </div>`;
+                        break;
+                    case 'codepen':
+                        embedHTML = `<div class="embed-container" data-embed-type="codepen" data-embed-url="${url}">
+                            <p>💻 CodePen: ${url}</p>
+                        </div>`;
+                        break;
+                    case 'iframe':
+                        embedHTML = `<div class="embed-container" data-embed-type="iframe" data-embed-url="${url}" data-width="${width}" data-height="${height}">
+                            <p>🌐 Custom Embed: ${url}</p>
+                        </div>`;
+                        break;
+                    case 'vimeo':
+                        embedHTML = `<div class="embed-container" data-embed-type="vimeo" data-embed-url="${url}">
+                            <p>🎬 Vimeo Video: ${url}</p>
+                        </div>`;
+                        break;
+                    case 'github':
+                        embedHTML = `<div class="embed-container" data-embed-type="github" data-embed-url="${url}">
+                            <p>📦 GitHub Gist: ${url}</p>
+                        </div>`;
+                        break;
+                }
+                
+                if (embedHTML) {
+                    const range = quill.getSelection() || { index: quill.getLength() };
+                    quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
+                    updateMarkdown();
+                    closeModal('embedModal');
+                    showToast('Embed added successfully');
+                }
+            }
+        }
+
+        function showFrontmatterModal() {
+            showModal('frontmatterModal');
+        }
+
+        function insertFrontmatter() {
+            const title = document.getElementById('fmTitle').value;
+            const description = document.getElementById('fmDescription').value;
+            const author = document.getElementById('fmAuthor').value;
+            const tags = document.getElementById('fmTags').value;
+            const date = document.getElementById('fmDate').value;
+            const draft = document.getElementById('fmDraft').value;
+            
+            let fm = '---\n';
+            if (title) fm += `title: "${title}"\n`;
+            if (description) fm += `description: "${description}"\n`;
+            if (author) fm += `author: "${author}"\n`;
+            if (date) fm += `pubDate: "${date}"\n`;
+            if (tags) fm += `tags: [${tags.split(',').map(tag => `"${tag.trim()}"`).join(', ')}]\n`;
+            fm += `draft: ${draft}\n`;
+            fm += '---';
+            
+            frontmatter = fm;
+            updateMarkdown();
+            closeModal('frontmatterModal');
+            showToast('Frontmatter applied');
+        }
+
+        function extractYouTubeId(url) {
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            const match = url.match(regex);
+            return match ? match[1] : null;
+        }
+
+        function copyMarkdown() {
+            const markdown = document.getElementById('markdownOutput').textContent;
+            navigator.clipboard.writeText(markdown).then(() => {
+                showToast('Markdown copied to clipboard! 🎉');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = markdown;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('Markdown copied to clipboard! 🎉');
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 's':
+                        e.preventDefault();
+                        copyMarkdown();
+                        break;
+                    case 'k':
+                        e.preventDefault();
+                        showEmbedModal();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+</Layout>
