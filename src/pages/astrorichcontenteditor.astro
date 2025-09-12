@@ -31,15 +31,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <!-- Keywords -->
     <meta name="keywords" content="astro markdown editor, markdown converter, rich text editor, WYSIWYG markdown, astro cms, markdown generator, frontmatter editor">
     
-    <!-- Quill.js CDN -->
+    <!-- External Libraries -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.snow.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.min.js"></script>
-    
-    <!-- Turndown for HTML to Markdown -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown-plugin-gfm.min.js"></script>
-    
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <!-- Structured Data -->
@@ -98,12 +94,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             background: var(--white);
         }
 
-        /* Hide default layout components */
         header, footer, nav {
             display: none !important;
         }
 
-        /* Hero Section */
         .hero {
             background: linear-gradient(135deg, var(--primary) 0%, var(--black) 100%);
             color: var(--white);
@@ -150,7 +144,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             box-shadow: 0 10px 25px rgba(35, 55, 255, 0.2);
         }
 
-        /* Features Section */
         .features {
             padding: 80px 0;
             background: var(--gray-50);
@@ -189,7 +182,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             font-size: 1.3rem;
         }
 
-        /* Editor Section */
         .editor-section {
             padding: 0;
             background: var(--white);
@@ -270,7 +262,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             min-height: 500px;
         }
 
-        /* Quill Editor Styling */
         .ql-toolbar {
             border: 1px solid var(--gray-200) !important;
             border-bottom: none !important;
@@ -303,7 +294,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             color: var(--primary) !important;
         }
 
-        /* Table styling in editor */
         .ql-editor table {
             border-collapse: collapse;
             margin: 15px 0;
@@ -389,7 +379,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             color: var(--gray-600);
         }
 
-        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -452,7 +441,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             color: var(--white);
         }
 
-        /* FAQ Section */
         .faq {
             padding: 80px 0;
             background: var(--white);
@@ -502,7 +490,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             display: block;
         }
 
-        /* Toast */
         .toast {
             position: fixed;
             top: 20px;
@@ -528,7 +515,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             font-style: italic;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: 2.5rem;
@@ -556,8 +542,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 </head>
 
 <body>
-<Header />
-    <!-- Hero Section -->
+    <Header />
+    
     <section class="hero">
         <div class="hero-container">
             <h1>Free Astro Markdown Editor</h1>
@@ -566,7 +552,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         </div>
     </section>
 
-    <!-- Features Section -->
     <section class="features">
         <div class="features-container">
             <h2>Why Choose Our Astro Markdown Editor?</h2>
@@ -599,7 +584,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         </div>
     </section>
 
-    <!-- Editor Section -->
     <section id="editor" class="editor-section">
         <div class="editor-container">
             <div class="editor-header">
@@ -657,7 +641,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         </div>
     </section>
 
-    <!-- FAQ Section -->
     <section class="faq">
         <div class="faq-container">
             <h2>Frequently Asked Questions</h2>
@@ -676,7 +659,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                     Is this tool really free to use?
                 </div>
                 <div class="faq-answer">
-                    <p>Yes! Our Astro Markdown is completely free with no registration required, no usage limits, and no watermarks. You can use it as much as you want for personal or commercial projects.</p>
+                    <p>Yes! Our Astro Markdown editor is completely free with no registration required, no usage limits, and no watermarks. You can use it as much as you want for personal or commercial projects.</p>
                 </div>
             </div>
 
@@ -718,7 +701,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         </div>
     </section>
 
-    <!-- Modals -->
     <div id="frontmatterModal" class="modal">
         <div class="modal-content">
             <h3>Document Frontmatter</h3>
@@ -767,15 +749,14 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <div id="toast" class="toast"></div>
 
-    <script is:inline>
+    <script>
         let quill;
         let frontmatter = '';
         let turndownService = null;
 
-        // Wait for all libraries to load before initializing
         function waitForLibraries(callback) {
             let attempts = 0;
-            const maxAttempts = 50; // 5 seconds max wait time
+            const maxAttempts = 50;
             
             const checkLibraries = () => {
                 attempts++;
@@ -801,7 +782,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             }
         }
 
-        // Initialize Turndown service with proper configuration
         function initTurndownService() {
             try {
                 turndownService = new TurndownService({
@@ -816,13 +796,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                     linkReferenceStyle: 'full'
                 });
 
-                // Add GFM plugin for table support
                 if (typeof TurndownPluginGfm !== 'undefined' && TurndownPluginGfm.tables) {
                     turndownService.use(TurndownPluginGfm.tables);
                     console.log('GFM tables plugin loaded');
                 }
 
-                // Custom rules for better static site generator compatibility
                 turndownService.addRule('lineBreaks', {
                     filter: 'br',
                     replacement: function () {
@@ -830,7 +808,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                     }
                 });
 
-                // Improved code block handling
                 turndownService.addRule('codeBlocks', {
                     filter: function (node, options) {
                         return node.nodeName === 'PRE' && node.firstChild && node.firstChild.nodeName === 'CODE';
@@ -846,7 +823,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                     }
                 });
 
-                // Handle embeds more cleanly
                 turndownService.addRule('embeds', {
                     filter: function (node) {
                         return node.classList && node.classList.contains('embed-container');
@@ -876,7 +852,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                     }
                 });
 
-                // Clean up empty paragraphs
                 turndownService.addRule('emptyParagraphs', {
                     filter: function (node) {
                         return node.nodeName === 'P' && !node.textContent.trim() && !node.querySelector('img, iframe, video');
@@ -894,7 +869,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             }
         }
 
-        // Initialize everything when DOM is ready and libraries are loaded
         document.addEventListener('DOMContentLoaded', function() {
             waitForLibraries(function() {
                 if (!initTurndownService()) {
@@ -902,7 +876,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                     return;
                 }
 
-                // Initialize Quill editor
                 try {
                     const toolbarOptions = [
                         [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
@@ -925,7 +898,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                         placeholder: 'Start writing your amazing content here...\n\nUse the toolbar above for formatting, or try the custom buttons for special features like tables, embeds and templates!'
                     });
 
-                    // Set initial content with better structure
                     const initialContent = {
                         "ops": [
                             {"insert": "Welcome to the Astro Markdown Editor"},
@@ -963,7 +935,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
                     quill.setContents(initialContent);
 
-                    // Listen for content changes with debouncing
                     let updateTimeout;
                     quill.on('text-change', function() {
                         clearTimeout(updateTimeout);
@@ -974,7 +945,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                         }, 300);
                     });
 
-                    // Initial conversion
                     setTimeout(function() {
                         updateMarkdown();
                         updateWordCount();
@@ -999,13 +969,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                 const html = quill.root.innerHTML;
                 let markdown = turndownService.turndown(html);
                 
-                // Clean up the markdown
                 markdown = markdown
-                    .replace(/\n\n\n+/g, '\n\n')  // Remove excessive line breaks
-                    .replace(/^\n+/, '')          // Remove leading newlines
-                    .replace(/\n+$/, '\n');       // Ensure single trailing newline
+                    .replace(/\n\n\n+/g, '\n\n')
+                    .replace(/^\n+/, '')
+                    .replace(/\n+$/, '\n');
                 
-                // Add frontmatter if exists
                 const finalMarkdown = frontmatter ? frontmatter + '\n' + markdown : markdown;
                 
                 const outputElement = document.getElementById('markdownOutput');
@@ -1340,26 +1308,22 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             const answer = element.nextElementSibling;
             const isActive = answer.classList.contains('active');
             
-            // Close all FAQ items
             const allAnswers = document.querySelectorAll('.faq-answer');
             allAnswers.forEach(item => {
                 item.classList.remove('active');
             });
             
-            // Toggle current item
             if (!isActive) {
                 answer.classList.add('active');
             }
         }
 
-        // Close modals when clicking outside
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
                 event.target.style.display = 'none';
             }
         }
 
-        // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey || e.metaKey) {
                 if (e.key === 's') {
@@ -1369,6 +1333,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             }
         });
     </script>
-<Footer />
+
+    <Footer />
 </body>
 </html>
