@@ -1,5 +1,7 @@
 ---
 import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
 
 const title = "Free Astro Markdown Editor | Rich Content to Markdown Converter";
 const description = "Convert rich text content to Astro-compatible Markdown instantly. Professional WYSIWYG editor with tables, embeds, code blocks, and frontmatter support. Free online tool.";
@@ -28,15 +30,20 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <!-- Keywords -->
     <meta name="keywords" content="astro markdown editor, markdown converter, rich text editor, WYSIWYG markdown, astro cms, markdown generator, frontmatter editor">
     
-    <!-- Summernote CDN -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
+    <!-- Quill.js CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.snow.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.min.js"></script>
+    
+    <!-- Quill Table Module -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.table.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.2/quill.table.min.js"></script>
     
     <!-- Turndown for HTML to Markdown -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown-plugin-gfm.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -262,26 +269,59 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             padding: 20px;
         }
 
-        #summernote {
+        .quill-editor {
             min-height: 500px;
         }
 
-        .note-editor {
+        /* Quill Editor Styling */
+        .ql-toolbar {
             border: 1px solid var(--gray-200) !important;
-        }
-
-        .note-toolbar {
+            border-bottom: none !important;
+            border-radius: 8px 8px 0 0 !important;
             background: var(--gray-50) !important;
-            border-bottom: 1px solid var(--gray-200) !important;
         }
 
-        .note-btn {
+        .ql-container {
+            border: 1px solid var(--gray-200) !important;
+            border-top: none !important;
+            border-radius: 0 0 8px 8px !important;
+            font-size: 16px !important;
+            line-height: 1.6 !important;
+        }
+
+        .ql-editor {
+            min-height: 450px !important;
+            padding: 20px !important;
+        }
+
+        .ql-toolbar button {
             color: var(--black) !important;
         }
 
-        .note-btn:hover {
-            background: var(--primary) !important;
-            color: var(--white) !important;
+        .ql-toolbar button:hover {
+            color: var(--primary) !important;
+        }
+
+        .ql-toolbar .ql-active {
+            color: var(--primary) !important;
+        }
+
+        /* Table styling in editor */
+        .ql-editor table {
+            border-collapse: collapse;
+            margin: 15px 0;
+            width: 100%;
+        }
+
+        .ql-editor table td,
+        .ql-editor table th {
+            border: 1px solid var(--gray-300);
+            padding: 8px 12px;
+        }
+
+        .ql-editor table th {
+            background: var(--gray-50);
+            font-weight: bold;
         }
 
         .output-panel {
@@ -585,7 +625,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                     </div>
 
                     <div class="editor-content">
-                        <div id="summernote"></div>
+                        <div id="quill-editor" class="quill-editor"></div>
                     </div>
 
                     <div class="stats-bar">
@@ -720,60 +760,80 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <div id="toast" class="toast"></div>
 
     <script is:inline>
+        let quill;
         let frontmatter = '';
-        
+
+        // Initialize Quill editor with table support
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof $ === 'undefined' || typeof $.fn.summernote === 'undefined') {
-                console.error('Summernote dependencies not loaded');
-                return;
+            // Register table module if available
+            if (window.Quill && window.QuillTable) {
+                Quill.register({'modules/table': QuillTable.TableModule});
             }
 
-            // Initialize Summernote
-            $('#summernote').summernote({
-                height: 500,
-                minHeight: 400,
-                toolbar: [
-                    ['style', ['style']],
-                    ['font', ['bold', 'italic', 'underline', 'clear']],
-                    ['fontname', ['fontname']],
-                    ['color', ['color']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['table', ['table']],
-                    ['insert', ['link', 'picture', 'video']],
-                    ['view', ['fullscreen', 'codeview', 'help']]
-                ],
-                placeholder: 'Start writing your content here...\n\nUse the toolbar above for formatting, tables, links, and more!',
-                callbacks: {
-                    onChange: function(contents) {
-                        updateMarkdown();
-                        updateWordCount();
-                        updateLastModified();
-                    }
-                }
+            // Quill configuration with proper table support
+            const toolbarOptions = [
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'script': 'sub'}, { 'script': 'super' }],
+                ['blockquote', 'code-block'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                [{ 'align': [] }],
+                ['link', 'image', 'video'],
+                ['clean']
+            ];
+
+            quill = new Quill('#quill-editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: toolbarOptions
+                },
+                placeholder: 'Start writing your amazing content here...\n\nUse the toolbar above for formatting, or try the custom buttons for special features like tables, embeds and templates!'
             });
 
-            // Insert initial content
-            const initialContent = 
-                '<h1>Welcome to the Astro Markdown Editor</h1>' +
-                '<p>This is a <strong>professional rich content editor</strong> that converts your content to <em>Astro-compatible Markdown</em> in real-time!</p>' +
-                '<h2>Key Features</h2>' +
-                '<ul>' +
-                    '<li>Full-featured rich text editing</li>' +
-                    '<li>Advanced table support</li>' +
-                    '<li>Media embeds (YouTube, Twitter, etc.)</li>' +
-                    '<li>Code syntax highlighting</li>' +
-                    '<li>Frontmatter generation</li>' +
-                    '<li>Real-time Markdown preview</li>' +
-                '</ul>' +
-                '<h3>Try it out!</h3>' +
-                '<p>Start editing this content and watch the Markdown output update in real-time in the right panel.</p>' +
-                '<blockquote>' +
-                    '<p>"The best way to get started is to quit talking and begin doing." - Walt Disney</p>' +
-                '</blockquote>';
-            
-            $('#summernote').summernote('code', initialContent);
-            
-            // Initial update
+            // Set initial content
+            const initialContent = [
+                { insert: 'Welcome to the Astro Markdown Editor' },
+                { attributes: { header: 1 }, insert: '\n' },
+                { insert: '\nThis is a ' },
+                { attributes: { bold: true }, insert: 'powerful rich content editor' },
+                { insert: ' that converts your content to ' },
+                { attributes: { italic: true }, insert: 'Astro-compatible Markdown' },
+                { insert: ' in real-time!\n\n' },
+                { insert: 'Key Features' },
+                { attributes: { header: 2 }, insert: '\n' },
+                { insert: '\nFull-featured rich text editing with Quill.js' },
+                { attributes: { list: 'bullet' }, insert: '\n' },
+                { insert: 'Tables, images, links, and code blocks' },
+                { attributes: { list: 'bullet' }, insert: '\n' },
+                { insert: 'YouTube, Twitter, and other embeds' },
+                { attributes: { list: 'bullet' }, insert: '\n' },
+                { insert: 'Frontmatter support for Astro' },
+                { attributes: { list: 'bullet' }, insert: '\n' },
+                { insert: 'Real-time Markdown preview' },
+                { attributes: { list: 'bullet' }, insert: '\n' },
+                { insert: '\n' },
+                { insert: 'Try it out!' },
+                { attributes: { header: 3 }, insert: '\n' },
+                { insert: '\nStart typing, formatting, and watch the magic happen in the right panel. The Markdown output is ready to paste into your Astro project!\n\n' },
+                { insert: 'This is a code snippet: ' },
+                { attributes: { code: true }, insert: "console.log('Hello Astro!')" },
+                { insert: '\n\nAnd here\'s a blockquote:\n' },
+                { insert: '"The best way to get started is to quit talking and begin doing." - Walt Disney' },
+                { attributes: { blockquote: true }, insert: '\n' }
+            ];
+
+            quill.setContents({ ops: initialContent });
+
+            // Listen for content changes
+            quill.on('text-change', function() {
+                updateMarkdown();
+                updateWordCount();
+                updateLastModified();
+            });
+
+            // Initial conversion
             updateMarkdown();
             updateWordCount();
             updateLastModified();
@@ -781,30 +841,61 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
         // Initialize Turndown converter
         function initTurndown() {
-            if (typeof TurndownService === 'undefined') {
-                console.error('Turndown not loaded');
-                return null;
-            }
-
             const turndownService = new TurndownService({
                 headingStyle: 'atx',
                 codeBlockStyle: 'fenced',
                 bulletListMarker: '-'
             });
 
-            // Add GFM plugin if available
+            // Add GFM plugin for table support
             if (typeof TurndownPluginGfm !== 'undefined') {
                 turndownService.use(TurndownPluginGfm.tables);
             }
+
+            // Custom rules for better Astro compatibility
+            turndownService.addRule('customCodeBlock', {
+                filter: 'pre',
+                replacement: function(content, node) {
+                    const codeElement = node.querySelector('code');
+                    const language = codeElement && codeElement.className ? 
+                        codeElement.className.replace('language-', '').replace('ql-syntax', '') || '' : '';
+                    return '\n\n```' + language + '\n' + content + '\n```\n\n';
+                }
+            });
+
+            // Custom rule for embeds
+            turndownService.addRule('embeds', {
+                filter: function(node) {
+                    return node.classList && node.classList.contains('embed-container');
+                },
+                replacement: function(content, node) {
+                    const embedType = node.dataset.embedType;
+                    const embedUrl = node.dataset.embedUrl;
+                    const embedId = node.dataset.embedId;
+                    
+                    switch(embedType) {
+                        case 'youtube':
+                            return '\n\n<iframe width="560" height="315" src="https://www.youtube.com/embed/' + embedId + '" frameborder="0" allowfullscreen></iframe>\n\n';
+                        case 'twitter':
+                            return '\n\n<!-- Twitter Embed: ' + embedUrl + ' -->\n<!-- Remember to add Twitter script to your Astro layout -->\n\n';
+                        case 'codepen':
+                            return '\n\n<!-- CodePen Embed: ' + embedUrl + ' -->\n<!-- Remember to add CodePen script to your Astro layout -->\n\n';
+                        case 'iframe':
+                            return '\n\n<iframe src="' + embedUrl + '" width="100%" height="400" frameborder="0"></iframe>\n\n';
+                        default:
+                            return '\n\n<!-- Custom Embed -->\n\n';
+                    }
+                }
+            });
 
             return turndownService;
         }
 
         function updateMarkdown() {
+            if (!quill) return;
+            
+            const html = quill.root.innerHTML;
             const turndownService = initTurndown();
-            if (!turndownService) return;
-
-            const html = $('#summernote').summernote('code');
             let markdown = turndownService.turndown(html);
             
             // Clean up extra line breaks
@@ -820,9 +911,12 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function updateWordCount() {
-            const html = $('#summernote').summernote('code');
-            const text = html.replace(/<[^>]*>/g, '');
-            const words = text.trim().split(/\s+/).filter(function(word) { return word.length > 0; }).length;
+            if (!quill) return;
+            
+            const text = quill.getText();
+            const words = text.trim().split(/\s+/).filter(function(word) { 
+                return word.length > 0; 
+            }).length;
             const characters = text.length;
             
             const wordCountElement = document.getElementById('wordCount');
@@ -840,80 +934,116 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function insertTemplate(type) {
-            let content = '';
+            if (!quill) return;
+            
+            let content = [];
             
             if (type === 'blog') {
-                content = 
-                    '<h1>My Amazing Blog Post</h1>' +
-                    '<p><em>Published on ' + new Date().toLocaleDateString() + '</em></p>' +
-                    '<h2>Introduction</h2>' +
-                    '<p>Write your compelling introduction here. Hook your readers with an interesting fact, question, or statement.</p>' +
-                    '<h2>Main Content</h2>' +
-                    '<p>This is where your main content goes. You can add:</p>' +
-                    '<ul>' +
-                        '<li>Lists and bullet points</li>' +
-                        '<li>Code examples and snippets</li>' +
-                        '<li>Images and media</li>' +
-                        '<li>Tables and data</li>' +
-                    '</ul>' +
-                    '<h2>Conclusion</h2>' +
-                    '<p>Wrap up your post with a strong conclusion that summarizes your key points.</p>';
+                content = [
+                    { insert: 'My Amazing Blog Post' },
+                    { attributes: { header: 1 }, insert: '\n' },
+                    { insert: '\nPublished on ' + new Date().toLocaleDateString() },
+                    { insert: '\n\n' },
+                    { insert: 'Introduction' },
+                    { attributes: { header: 2 }, insert: '\n' },
+                    { insert: '\nWrite your compelling introduction here. Hook your readers with an interesting fact, question, or statement.\n\n' },
+                    { insert: 'Main Content' },
+                    { attributes: { header: 2 }, insert: '\n' },
+                    { insert: '\nThis is where your main content goes. You can add:' },
+                    { insert: '\n' },
+                    { insert: 'Lists and bullet points' },
+                    { attributes: { list: 'bullet' }, insert: '\n' },
+                    { insert: 'Code examples and snippets' },
+                    { attributes: { list: 'bullet' }, insert: '\n' },
+                    { insert: 'Images and media' },
+                    { attributes: { list: 'bullet' }, insert: '\n' },
+                    { insert: 'Tables and data' },
+                    { attributes: { list: 'bullet' }, insert: '\n' },
+                    { insert: '\n' },
+                    { insert: 'Conclusion' },
+                    { attributes: { header: 2 }, insert: '\n' },
+                    { insert: '\nWrap up your post with a strong conclusion that summarizes your key points and provides value to your readers.\n' }
+                ];
             } else if (type === 'docs') {
-                content = 
-                    '<h1>Documentation Title</h1>' +
-                    '<p>Brief description of what this documentation covers.</p>' +
-                    '<h2>Table of Contents</h2>' +
-                    '<ol>' +
-                        '<li>Overview</li>' +
-                        '<li>Getting Started</li>' +
-                        '<li>API Reference</li>' +
-                        '<li>Examples</li>' +
-                    '</ol>' +
-                    '<h2>Overview</h2>' +
-                    '<p>Provide a high-level overview of the feature or API you are documenting.</p>' +
-                    '<h2>Getting Started</h2>' +
-                    '<p>Step-by-step instructions:</p>' +
-                    '<ol>' +
-                        '<li>Install the package</li>' +
-                        '<li>Configure your project</li>' +
-                        '<li>Run your first example</li>' +
-                    '</ol>';
+                content = [
+                    { insert: 'Documentation Title' },
+                    { attributes: { header: 1 }, insert: '\n' },
+                    { insert: '\nBrief description of what this documentation covers.\n\n' },
+                    { insert: 'Table of Contents' },
+                    { attributes: { header: 2 }, insert: '\n' },
+                    { insert: '\nOverview' },
+                    { attributes: { list: 'ordered' }, insert: '\n' },
+                    { insert: 'Getting Started' },
+                    { attributes: { list: 'ordered' }, insert: '\n' },
+                    { insert: 'API Reference' },
+                    { attributes: { list: 'ordered' }, insert: '\n' },
+                    { insert: 'Examples' },
+                    { attributes: { list: 'ordered' }, insert: '\n' },
+                    { insert: 'Troubleshooting' },
+                    { attributes: { list: 'ordered' }, insert: '\n' },
+                    { insert: '\n' },
+                    { insert: 'Overview' },
+                    { attributes: { header: 2 }, insert: '\n' },
+                    { insert: '\nProvide a high-level overview of the feature or API you\'re documenting.\n\n' },
+                    { insert: 'Getting Started' },
+                    { attributes: { header: 2 }, insert: '\n' },
+                    { insert: '\nStep-by-step instructions for getting started:\n\n' },
+                    { insert: 'Install the package' },
+                    { attributes: { list: 'ordered' }, insert: '\n' },
+                    { insert: 'Configure your project' },
+                    { attributes: { list: 'ordered' }, insert: '\n' },
+                    { insert: 'Run your first example' },
+                    { attributes: { list: 'ordered' }, insert: '\n' },
+                    { insert: '\n' },
+                    { insert: 'Example Code' },
+                    { attributes: { header: 3 }, insert: '\n' },
+                    { insert: '\n' },
+                    { insert: '// Your example code here\nconst example = \'Hello, World!\';' },
+                    { attributes: { 'code-block': true }, insert: '\n' },
+                    { insert: '\n' }
+                ];
             }
             
-            $('#summernote').summernote('code', content);
+            quill.setContents({ ops: content });
             updateMarkdown();
         }
 
         function insertTable() {
-            const tableHTML = 
-                '<table class="table table-bordered">' +
-                    '<thead>' +
-                        '<tr>' +
-                            '<th>Header 1</th>' +
-                            '<th>Header 2</th>' +
-                            '<th>Header 3</th>' +
-                        '</tr>' +
-                    '</thead>' +
-                    '<tbody>' +
-                        '<tr>' +
-                            '<td>Cell 1</td>' +
-                            '<td>Cell 2</td>' +
-                            '<td>Cell 3</td>' +
-                        '</tr>' +
-                        '<tr>' +
-                            '<td>Cell 4</td>' +
-                            '<td>Cell 5</td>' +
-                            '<td>Cell 6</td>' +
-                        '</tr>' +
-                    '</tbody>' +
-                '</table>';
-            $('#summernote').summernote('pasteHTML', tableHTML);
+            if (!quill) return;
+            
+            const tableHTML = '<table>' +
+                '<thead>' +
+                    '<tr>' +
+                        '<th>Header 1</th>' +
+                        '<th>Header 2</th>' +
+                        '<th>Header 3</th>' +
+                    '</tr>' +
+                '</thead>' +
+                '<tbody>' +
+                    '<tr>' +
+                        '<td>Cell 1</td>' +
+                        '<td>Cell 2</td>' +
+                        '<td>Cell 3</td>' +
+                    '</tr>' +
+                    '<tr>' +
+                        '<td>Cell 4</td>' +
+                        '<td>Cell 5</td>' +
+                        '<td>Cell 6</td>' +
+                    '</tr>' +
+                '</tbody>' +
+            '</table>';
+            
+            const range = quill.getSelection();
+            const index = range ? range.index : quill.getLength();
+            quill.clipboard.dangerouslyPasteHTML(index, tableHTML);
             updateMarkdown();
         }
 
         function clearEditor() {
+            if (!quill) return;
+            
             if (confirm('Are you sure you want to clear all content?')) {
-                $('#summernote').summernote('code', '');
+                quill.setText('');
                 frontmatter = '';
                 updateMarkdown();
                 showToast('Editor cleared successfully!');
@@ -971,6 +1101,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function insertEmbed() {
+            if (!quill) return;
+            
             const type = document.getElementById('embedType').value;
             const url = document.getElementById('embedURL').value;
             
@@ -981,22 +1113,32 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             if (type === 'youtube') {
                 const videoId = extractYouTubeId(url);
                 if (videoId) {
-                    embedHTML = '<iframe width="560" height="315" src="https://www.youtube.com/embed/' + videoId + '" frameborder="0" allowfullscreen></iframe>';
+                    embedHTML = '<div class="embed-container" data-embed-type="youtube" data-embed-id="' + videoId + '" data-embed-url="' + url + '">' +
+                        '<p>📺 YouTube Video: ' + url + '</p>' +
+                        '<p><em>This will be converted to an iframe in the markdown output</em></p>' +
+                    '</div>';
                 }
             } else if (type === 'twitter') {
-                embedHTML = '<!-- Twitter Embed: ' + url + ' -->\n<!-- Add Twitter embed script to your layout -->';
+                embedHTML = '<div class="embed-container" data-embed-type="twitter" data-embed-url="' + url + '">' +
+                    '<p>🐦 Twitter Post: ' + url + '</p>' +
+                    '<p><em>This will be converted to a Twitter embed in the markdown output</em></p>' +
+                '</div>';
             } else if (type === 'codepen') {
-                embedHTML = '<!-- CodePen Embed: ' + url + ' -->\n<!-- Add CodePen embed script to your layout -->';
-            } else if (type === 'vimeo') {
-                embedHTML = '<!-- Vimeo Embed: ' + url + ' -->';
-            } else if (type === 'github') {
-                embedHTML = '<!-- GitHub Gist: ' + url + ' -->';
+                embedHTML = '<div class="embed-container" data-embed-type="codepen" data-embed-url="' + url + '">' +
+                    '<p>💻 CodePen: ' + url + '</p>' +
+                    '<p><em>This will be converted to a CodePen embed in the markdown output</em></p>' +
+                '</div>';
             } else if (type === 'iframe') {
-                embedHTML = '<iframe src="' + url + '" width="100%" height="400" frameborder="0"></iframe>';
+                embedHTML = '<div class="embed-container" data-embed-type="iframe" data-embed-url="' + url + '">' +
+                    '<p>🌐 Custom Embed: ' + url + '</p>' +
+                    '<p><em>This will be converted to an iframe in the markdown output</em></p>' +
+                '</div>';
             }
             
             if (embedHTML) {
-                $('#summernote').summernote('pasteHTML', embedHTML);
+                const range = quill.getSelection();
+                const index = range ? range.index : quill.getLength();
+                quill.clipboard.dangerouslyPasteHTML(index, embedHTML);
                 updateMarkdown();
                 closeModal('embedModal');
                 showToast('Embed added successfully!');
@@ -1015,7 +1157,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             
             const markdown = markdownOutput.textContent;
             
-            if (navigator.clipboard) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(markdown).then(function() {
                     showToast('Markdown copied to clipboard!');
                 }).catch(function() {
