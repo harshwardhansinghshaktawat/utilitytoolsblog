@@ -9,7 +9,6 @@ const description = "Convert rich text content to Astro-compatible Markdown inst
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -968,83 +967,84 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
 
         function insertTemplate(type) {
-            if (!quill) return;
-            
-            let content = [];
+            let delta;
             
             if (type === 'blog') {
-                content = [
-                    { insert: 'My Amazing Blog Post' },
-                    { attributes: { header: 1 }, insert: '\n' },
-                    { insert: '\nPublished on ' + new Date().toLocaleDateString() },
-                    { insert: '\n\n' },
-                    { insert: 'Introduction' },
-                    { attributes: { header: 2 }, insert: '\n' },
-                    { insert: '\nWrite your compelling introduction here. Hook your readers with an interesting fact, question, or statement.\n\n' },
-                    { insert: 'Main Content' },
-                    { attributes: { header: 2 }, insert: '\n' },
-                    { insert: '\nThis is where your main content goes. You can add:' },
-                    { insert: '\n' },
-                    { insert: 'Lists and bullet points' },
-                    { attributes: { list: 'bullet' }, insert: '\n' },
-                    { insert: 'Code examples and snippets' },
-                    { attributes: { list: 'bullet' }, insert: '\n' },
-                    { insert: 'Images and media' },
-                    { attributes: { list: 'bullet' }, insert: '\n' },
-                    { insert: 'Tables and data' },
-                    { attributes: { list: 'bullet' }, insert: '\n' },
-                    { insert: '\n' },
-                    { insert: 'Conclusion' },
-                    { attributes: { header: 2 }, insert: '\n' },
-                    { insert: '\nWrap up your post with a strong conclusion that summarizes your key points and provides value to your readers.\n' }
-                ];
+                delta = {
+                    "ops": [
+                        {"insert": "My Amazing Blog Post"},
+                        {"attributes": {"header": 1}, "insert": "\n"},
+                        {"insert": "\nPublished on " + new Date().toLocaleDateString()},
+                        {"insert": "\n\n"},
+                        {"insert": "Introduction"},
+                        {"attributes": {"header": 2}, "insert": "\n"},
+                        {"insert": "\nWrite your compelling introduction here. Hook your readers with an interesting fact, question, or statement.\n\n"},
+                        {"insert": "Main Content"},
+                        {"attributes": {"header": 2}, "insert": "\n"},
+                        {"insert": "\nThis is where your main content goes. You can add:"},
+                        {"insert": "\n"},
+                        {"insert": "Lists and bullet points"},
+                        {"attributes": {"list": "bullet"}, "insert": "\n"},
+                        {"insert": "Code examples and snippets"},
+                        {"attributes": {"list": "bullet"}, "insert": "\n"},
+                        {"insert": "Images and media"},
+                        {"attributes": {"list": "bullet"}, "insert": "\n"},
+                        {"insert": "Tables and data"},
+                        {"attributes": {"list": "bullet"}, "insert": "\n"},
+                        {"insert": "\n"},
+                        {"insert": "Conclusion"},
+                        {"attributes": {"header": 2}, "insert": "\n"},
+                        {"insert": "\nWrap up your post with a strong conclusion that summarizes your key points and provides value to your readers.\n"}
+                    ]
+                };
             } else if (type === 'docs') {
-                content = [
-                    { insert: 'Documentation Title' },
-                    { attributes: { header: 1 }, insert: '\n' },
-                    { insert: '\nBrief description of what this documentation covers.\n\n' },
-                    { insert: 'Table of Contents' },
-                    { attributes: { header: 2 }, insert: '\n' },
-                    { insert: '\nOverview' },
-                    { attributes: { list: 'ordered' }, insert: '\n' },
-                    { insert: 'Getting Started' },
-                    { attributes: { list: 'ordered' }, insert: '\n' },
-                    { insert: 'API Reference' },
-                    { attributes: { list: 'ordered' }, insert: '\n' },
-                    { insert: 'Examples' },
-                    { attributes: { list: 'ordered' }, insert: '\n' },
-                    { insert: 'Troubleshooting' },
-                    { attributes: { list: 'ordered' }, insert: '\n' },
-                    { insert: '\n' },
-                    { insert: 'Overview' },
-                    { attributes: { header: 2 }, insert: '\n' },
-                    { insert: '\nProvide a high-level overview of the feature or API you\'re documenting.\n\n' },
-                    { insert: 'Getting Started' },
-                    { attributes: { header: 2 }, insert: '\n' },
-                    { insert: '\nStep-by-step instructions for getting started:\n\n' },
-                    { insert: 'Install the package' },
-                    { attributes: { list: 'ordered' }, insert: '\n' },
-                    { insert: 'Configure your project' },
-                    { attributes: { list: 'ordered' }, insert: '\n' },
-                    { insert: 'Run your first example' },
-                    { attributes: { list: 'ordered' }, insert: '\n' },
-                    { insert: '\n' },
-                    { insert: 'Example Code' },
-                    { attributes: { header: 3 }, insert: '\n' },
-                    { insert: '\n' },
-                    { insert: '// Your example code here\nconst example = \'Hello, World!\';' },
-                    { attributes: { 'code-block': true }, insert: '\n' },
-                    { insert: '\n' }
-                ];
+                delta = {
+                    "ops": [
+                        {"insert": "Documentation Title"},
+                        {"attributes": {"header": 1}, "insert": "\n"},
+                        {"insert": "\nBrief description of what this documentation covers.\n\n"},
+                        {"insert": "Table of Contents"},
+                        {"attributes": {"header": 2}, "insert": "\n"},
+                        {"insert": "\nOverview"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "Getting Started"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "API Reference"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "Examples"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "Troubleshooting"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "\n"},
+                        {"insert": "Overview"},
+                        {"attributes": {"header": 2}, "insert": "\n"},
+                        {"insert": "\nProvide a high-level overview of the feature or API you're documenting.\n\n"},
+                        {"insert": "Getting Started"},
+                        {"attributes": {"header": 2}, "insert": "\n"},
+                        {"insert": "\nStep-by-step instructions for getting started:\n\n"},
+                        {"insert": "Install the package"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "Configure your project"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "Run your first example"},
+                        {"attributes": {"list": "ordered"}, "insert": "\n"},
+                        {"insert": "\n"},
+                        {"insert": "Example Code"},
+                        {"attributes": {"header": 3}, "insert": "\n"},
+                        {"insert": "\n"},
+                        {"insert": "// Your example code here\nconst example = 'Hello, World!';"},
+                        {"attributes": {"code-block": true}, "insert": "\n"},
+                        {"insert": "\n"}
+                    ]
+                };
             }
             
-            quill.setContents({ ops: content });
+            quill.setContents(delta);
             updateMarkdown();
         }
 
+        // Add the insertTable function
         function insertTable() {
-            if (!quill) return;
-            
             const tableHTML = '<table>' +
                 '<thead>' +
                     '<tr>' +
@@ -1067,20 +1067,115 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                 '</tbody>' +
             '</table>';
             
-            const range = quill.getSelection();
-            const index = range ? range.index : quill.getLength();
-            quill.clipboard.dangerouslyPasteHTML(index, tableHTML);
+            const range = quill.getSelection() || { index: quill.getLength() };
+            quill.clipboard.dangerouslyPasteHTML(range.index, tableHTML);
+            updateMarkdown();
+            showToast('Table added successfully!');
+        }
+
+        function insertYouTube() {
+            const url = prompt('Enter YouTube URL:');
+            if (url) {
+                const videoId = extractYouTubeId(url);
+                if (videoId) {
+                    const embedHTML = `<div class="embed-container" data-embed-type="youtube" data-embed-id="${videoId}" data-embed-url="${url}">
+                        <p>📺 YouTube Video: ${url}</p>
+                        <p><em>This will be converted to an iframe in the markdown output</em></p>
+                    </div>`;
+                    
+                    const range = quill.getSelection() || { index: quill.getLength() };
+                    quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
+                    updateMarkdown();
+                } else {
+                    showToast('Invalid YouTube URL');
+                }
+            }
+        }
+
+        function insertTwitter() {
+            const url = prompt('Enter Twitter post URL:');
+            if (url) {
+                const embedHTML = `<div class="embed-container" data-embed-type="twitter" data-embed-url="${url}">
+                    <p>🐦 Twitter Post: ${url}</p>
+                    <p><em>This will be converted to a Twitter embed in the markdown output</em></p>
+                </div>`;
+                
+                const range = quill.getSelection() || { index: quill.getLength() };
+                quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
+                updateMarkdown();
+            }
+        }
+
+        function insertCodePen() {
+            const url = prompt('Enter CodePen URL:');
+            if (url) {
+                const embedHTML = `<div class="embed-container" data-embed-type="codepen" data-embed-url="${url}">
+                    <p>💻 CodePen: ${url}</p>
+                    <p><em>This will be converted to a CodePen embed in the markdown output</em></p>
+                </div>`;
+                
+                const range = quill.getSelection() || { index: quill.getLength() };
+                quill.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
+                updateMarkdown();
+            }
+        }
+
+        function insertCallout(type) {
+            const text = prompt(`Enter ${type} message:`);
+            if (text) {
+                const icons = { info: 'ℹ️', warning: '⚠️', tip: '💡' };
+                const colors = { 
+                    info: 'background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px;', 
+                    warning: 'background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px;',
+                    tip: 'background: #d1fae5; border-left: 4px solid #10b981; padding: 15px;'
+                };
+                
+                const calloutHTML = `<div class="callout" data-callout-type="${type}" style="${colors[type]}">
+                    <p><strong>${icons[type]} ${type.charAt(0).toUpperCase() + type.slice(1)}</strong></p>
+                    <p>${text}</p>
+                </div>`;
+                
+                const range = quill.getSelection() || { index: quill.getLength() };
+                quill.clipboard.dangerouslyPasteHTML(range.index, calloutHTML);
+                updateMarkdown();
+            }
+        }
+
+        function insertFootnote() {
+            const text = prompt('Enter footnote text:');
+            if (text) {
+                const footnoteNum = Date.now().toString().slice(-4);
+                const footnoteHTML = `<sup><a href="#fn${footnoteNum}" id="ref${footnoteNum}">${footnoteNum}</a></sup>`;
+                
+                const range = quill.getSelection() || { index: quill.getLength() };
+                quill.clipboard.dangerouslyPasteHTML(range.index, footnoteHTML);
+                
+                // Add footnote at the end
+                const currentLength = quill.getLength();
+                quill.clipboard.dangerouslyPasteHTML(currentLength, 
+                    `\n\n<p id="fn${footnoteNum}"><small>${footnoteNum}. ${text} <a href="#ref${footnoteNum}">↩</a></small></p>`);
+                
+                updateMarkdown();
+            }
+        }
+
+        function insertTOC() {
+            const tocHTML = `<div class="toc">
+                <p><strong>📑 Table of Contents</strong></p>
+                <p><em>This will be automatically generated based on your headings</em></p>
+            </div>`;
+            
+            const range = quill.getSelection() || { index: quill.getLength() };
+            quill.clipboard.dangerouslyPasteHTML(range.index, tocHTML);
             updateMarkdown();
         }
 
         function clearEditor() {
-            if (!quill) return;
-            
             if (confirm('Are you sure you want to clear all content?')) {
                 quill.setText('');
                 frontmatter = '';
                 updateMarkdown();
-                showToast('Editor cleared successfully!');
+                showToast('Editor cleared');
             }
         }
 
