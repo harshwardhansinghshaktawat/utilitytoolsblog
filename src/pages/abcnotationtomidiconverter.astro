@@ -7,7 +7,6 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -709,7 +708,6 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
     </style>
 </head>
 <body class="abc2midi-root">
-<Header />
     <!-- Hero Section -->
     <section class="abc2midi-hero-section">
         <h1 class="abc2midi-hero-title">ABC to MIDI Converter</h1>
@@ -1260,7 +1258,14 @@ V:B2 name="Bass" clef=bass
 
                     this.debugLog('Rendered visual object successfully');
 
-                    const hasMidiSupport = window.ABCJS.synth && window.ABCJS.synth.SynthController;
+                    // Check for synth support with better detection
+                    const hasMidiSupport = window.ABCJS && 
+                                          window.ABCJS.synth && 
+                                          window.ABCJS.synth.SynthController && 
+                                          window.ABCJS.synth.getMidiFile;
+                                          
+                    this.debugLog(`MIDI support available: ${hasMidiSupport}`);
+                    
                     if (hasMidiSupport) {
                         if (!this.audioContext) {
                             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -1712,6 +1717,5 @@ V:B2 name="Bass" clef=bass
         script.textContent = JSON.stringify(structuredData);
         document.head.appendChild(script);
     </script>
-<Footer />
 </body>
 </html>
