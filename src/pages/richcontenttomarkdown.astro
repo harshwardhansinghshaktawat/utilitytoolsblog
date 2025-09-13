@@ -1,18 +1,24 @@
+---
+// Astro frontmatter - server-side only, no browser APIs here
+const title = "Advanced MDX Editor - Best GitHub Compatible Markdown Editor Online";
+const description = "Professional MDX editor with live preview, GitHub flavored markdown support, rich text editing, code syntax highlighting, and instant markdown conversion.";
+---
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced MDX Editor - Best GitHub Compatible Markdown Editor Online | Free Rich Text to Markdown Converter</title>
-    <meta name="description" content="Professional MDX editor with live preview, GitHub flavored markdown support, rich text editing, code syntax highlighting, and instant markdown conversion. Free online tool for developers, writers, and content creators.">
+    <title>{title} | Free Rich Text to Markdown Converter</title>
+    <meta name="description" content={description}>
     <meta name="keywords" content="MDX editor, markdown editor, GitHub markdown, rich text editor, markdown converter, online markdown editor, MDX to markdown, WYSIWYG markdown, markdown preview, code editor">
     <meta name="author" content="Advanced MDX Editor">
-    <meta property="og:title" content="Advanced MDX Editor - Best GitHub Compatible Markdown Editor">
-    <meta property="og:description" content="Professional MDX editor with live preview and GitHub flavored markdown support. Convert rich text to markdown instantly.">
+    <meta property="og:title" content={title}>
+    <meta property="og:description" content={description}>
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Advanced MDX Editor - GitHub Compatible Markdown Editor">
-    <meta name="twitter:description" content="Professional MDX editor with live preview and GitHub flavored markdown support.">
+    <meta name="twitter:title" content={title}>
+    <meta name="twitter:description" content={description}>
     <link rel="canonical" href="https://example.com/mdx-editor">
     
     <style>
@@ -585,7 +591,7 @@ function hello() {
 
 > This is a blockquote. Perfect for highlighting important information.
 
-Happy writing! 🚀" oninput="updatePreview()"></textarea>
+Happy writing! 🚀"></textarea>
                     </div>
                     
                     <div class="editor-pane">
@@ -723,142 +729,159 @@ Happy writing! 🚀" oninput="updatePreview()"></textarea>
         </div>
     </section>
 
+    <!-- Client-side JavaScript - runs only in the browser -->
     <script>
-        // Markdown parsing and rendering
-        function parseMarkdown(markdown) {
-            let html = markdown;
-
-            // Headers
-            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-
-            // Bold
-            html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
-
-            // Italic
-            html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
-
-            // Code inline
-            html = html.replace(/`(.*?)`/gim, '<code>$1</code>');
-
-            // Strikethrough
-            html = html.replace(/~~(.*?)~~/gim, '<del>$1</del>');
-
-            // Links
-            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank">$1</a>');
-
-            // Images
-            html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/gim, '<img src="$2" alt="$1" style="max-width: 100%; height: auto;">');
-
-            // Code blocks
-            html = html.replace(/```(\w+)?\n([\s\S]*?)```/gim, function(match, lang, code) {
-                return `<pre><code class="language-${lang || 'text'}">${code.trim()}</code></pre>`;
-            });
-
-            // Blockquotes
-            html = html.replace(/^> (.*$)/gim, '<blockquote><p>$1</p></blockquote>');
-
-            // Horizontal rules
-            html = html.replace(/^---$/gim, '<hr>');
-
-            // Task lists
-            html = html.replace(/^- \[ \] (.*$)/gim, '<input type="checkbox" disabled> $1<br>');
-            html = html.replace(/^- \[x\] (.*$)/gim, '<input type="checkbox" checked disabled> $1<br>');
-
-            // Unordered lists
-            html = html.replace(/^- (.*$)/gim, '<li>$1</li>');
-            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-
-            // Ordered lists
-            html = html.replace(/^\d+\. (.*$)/gim, '<li>$1</li>');
+        // Wait for DOM to be fully loaded before executing any browser-specific code
+        if (typeof window !== 'undefined') {
+            // All browser API code goes here
             
-            // Tables (simplified)
-            const tableRegex = /^\|(.+)\|\s*\n\|[-\s|:]+\|\s*\n((?:\|.*\|\s*\n?)*)/gm;
-            html = html.replace(tableRegex, function(match, header, rows) {
-                const headerCells = header.split('|').map(cell => `<th>${cell.trim()}</th>`).join('');
-                const rowCells = rows.trim().split('\n').map(row => {
-                    return '<tr>' + row.split('|').slice(1, -1).map(cell => `<td>${cell.trim()}</td>`).join('') + '</tr>';
-                }).join('');
-                return `<table><thead><tr>${headerCells}</tr></thead><tbody>${rowCells}</tbody></table>`;
-            });
+            // Markdown parsing and rendering
+            function parseMarkdown(markdown) {
+                let html = markdown;
 
-            // Line breaks
-            html = html.replace(/\n/gim, '<br>');
+                // Headers
+                html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+                html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+                html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
 
-            // Clean up extra breaks in block elements
-            html = html.replace(/<\/h([1-6])><br>/g, '</h$1>');
-            html = html.replace(/<\/blockquote><br>/g, '</blockquote>');
-            html = html.replace(/<\/pre><br>/g, '</pre>');
-            html = html.replace(/<\/ul><br>/g, '</ul>');
-            html = html.replace(/<\/ol><br>/g, '</ol>');
-            html = html.replace(/<\/table><br>/g, '</table>');
+                // Bold
+                html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
 
-            return html;
-        }
+                // Italic
+                html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
 
-        function updatePreview() {
-            const input = document.getElementById('markdown-input');
-            const preview = document.getElementById('markdown-preview');
-            const markdown = input.value;
+                // Code inline
+                html = html.replace(/`(.*?)`/gim, '<code>$1</code>');
 
-            // Update preview
-            const html = parseMarkdown(markdown);
-            preview.innerHTML = `<div class="preview-content">${html}</div>`;
+                // Strikethrough
+                html = html.replace(/~~(.*?)~~/gim, '<del>$1</del>');
 
-            // Update stats
-            updateStats(markdown);
-        }
+                // Links
+                html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank">$1</a>');
 
-        function updateStats(text) {
-            const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
-            const chars = text.length;
-            const lines = text === '' ? 0 : text.split('\n').length;
-            const readingTime = Math.ceil(words / 200); // 200 words per minute
+                // Images
+                html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/gim, '<img src="$2" alt="$1" style="max-width: 100%; height: auto;">');
 
-            document.getElementById('word-count').textContent = words.toLocaleString();
-            document.getElementById('char-count').textContent = chars.toLocaleString();
-            document.getElementById('line-count').textContent = lines.toLocaleString();
-            document.getElementById('reading-time').textContent = readingTime;
-        }
+                // Code blocks
+                html = html.replace(/```(\w+)?\n([\s\S]*?)```/gim, function(match, lang, code) {
+                    return `<pre><code class="language-${lang || 'text'}">${code.trim()}</code></pre>`;
+                });
 
-        function insertText(before, after) {
-            const textarea = document.getElementById('markdown-input');
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const selectedText = textarea.value.substring(start, end);
-            const newText = before + selectedText + after;
-            
-            textarea.setRangeText(newText, start, end, 'end');
-            textarea.focus();
-            updatePreview();
-        }
+                // Blockquotes
+                html = html.replace(/^> (.*$)/gim, '<blockquote><p>$1</p></blockquote>');
 
-        function wrapText(before, after) {
-            insertText(before, after);
-        }
+                // Horizontal rules
+                html = html.replace(/^---$/gim, '<hr>');
 
-        function insertTable() {
-            const table = `| Header 1 | Header 2 | Header 3 |
+                // Task lists
+                html = html.replace(/^- \[ \] (.*$)/gim, '<input type="checkbox" disabled> $1<br>');
+                html = html.replace(/^- \[x\] (.*$)/gim, '<input type="checkbox" checked disabled> $1<br>');
+
+                // Unordered lists
+                html = html.replace(/^- (.*$)/gim, '<li>$1</li>');
+                html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+
+                // Ordered lists
+                html = html.replace(/^\d+\. (.*$)/gim, '<li>$1</li>');
+                
+                // Tables (simplified)
+                const tableRegex = /^\|(.+)\|\s*\n\|[-\s|:]+\|\s*\n((?:\|.*\|\s*\n?)*)/gm;
+                html = html.replace(tableRegex, function(match, header, rows) {
+                    const headerCells = header.split('|').map(cell => `<th>${cell.trim()}</th>`).join('');
+                    const rowCells = rows.trim().split('\n').map(row => {
+                        return '<tr>' + row.split('|').slice(1, -1).map(cell => `<td>${cell.trim()}</td>`).join('') + '</tr>';
+                    }).join('');
+                    return `<table><thead><tr>${headerCells}</tr></thead><tbody>${rowCells}</tbody></table>`;
+                });
+
+                // Line breaks
+                html = html.replace(/\n/gim, '<br>');
+
+                // Clean up extra breaks in block elements
+                html = html.replace(/<\/h([1-6])><br>/g, '</h$1>');
+                html = html.replace(/<\/blockquote><br>/g, '</blockquote>');
+                html = html.replace(/<\/pre><br>/g, '</pre>');
+                html = html.replace(/<\/ul><br>/g, '</ul>');
+                html = html.replace(/<\/ol><br>/g, '</ol>');
+                html = html.replace(/<\/table><br>/g, '</table>');
+
+                return html;
+            }
+
+            function updatePreview() {
+                const input = document.getElementById('markdown-input');
+                const preview = document.getElementById('markdown-preview');
+                if (!input || !preview) return;
+                
+                const markdown = input.value;
+
+                // Update preview
+                const html = parseMarkdown(markdown);
+                preview.innerHTML = `<div class="preview-content">${html}</div>`;
+
+                // Update stats
+                updateStats(markdown);
+            }
+
+            function updateStats(text) {
+                const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+                const chars = text.length;
+                const lines = text === '' ? 0 : text.split('\n').length;
+                const readingTime = Math.ceil(words / 200); // 200 words per minute
+
+                const wordCountEl = document.getElementById('word-count');
+                const charCountEl = document.getElementById('char-count');
+                const lineCountEl = document.getElementById('line-count');
+                const readingTimeEl = document.getElementById('reading-time');
+
+                if (wordCountEl) wordCountEl.textContent = words.toLocaleString();
+                if (charCountEl) charCountEl.textContent = chars.toLocaleString();
+                if (lineCountEl) lineCountEl.textContent = lines.toLocaleString();
+                if (readingTimeEl) readingTimeEl.textContent = readingTime;
+            }
+
+            function insertText(before, after) {
+                const textarea = document.getElementById('markdown-input');
+                if (!textarea) return;
+                
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const selectedText = textarea.value.substring(start, end);
+                const newText = before + selectedText + after;
+                
+                textarea.setRangeText(newText, start, end, 'end');
+                textarea.focus();
+                updatePreview();
+            }
+
+            function wrapText(before, after) {
+                insertText(before, after);
+            }
+
+            function insertTable() {
+                const table = `| Header 1 | Header 2 | Header 3 |
 |----------|----------|----------|
 | Cell 1   | Cell 2   | Cell 3   |
 | Cell 4   | Cell 5   | Cell 6   |`;
-            insertText(table, '');
-        }
-
-        function insertCodeBlock() {
-            insertText('```javascript\n', '\n```');
-        }
-
-        function clearEditor() {
-            if (confirm('Are you sure you want to clear all content?')) {
-                document.getElementById('markdown-input').value = '';
-                updatePreview();
+                insertText(table, '');
             }
-        }
 
-        function loadSample() {
-            const sample = `# Advanced MDX Editor Demo
+            function insertCodeBlock() {
+                insertText('```javascript\n', '\n```');
+            }
+
+            function clearEditor() {
+                if (confirm('Are you sure you want to clear all content?')) {
+                    const input = document.getElementById('markdown-input');
+                    if (input) {
+                        input.value = '';
+                        updatePreview();
+                    }
+                }
+            }
+
+            function loadSample() {
+                const sample = `# Advanced MDX Editor Demo
 
 This is a comprehensive demonstration of our **powerful Markdown editor** with real-time preview capabilities.
 
@@ -943,68 +966,83 @@ This editor supports GitHub Flavored Markdown and is perfect for:
 
 Happy writing! 🚀`;
 
-            document.getElementById('markdown-input').value = sample;
-            updatePreview();
-        }
-
-        async function copyToClipboard() {
-            const text = document.getElementById('markdown-input').value;
-            try {
-                await navigator.clipboard.writeText(text);
-                showNotification('Markdown copied to clipboard!');
-            } catch (err) {
-                fallbackCopyTextToClipboard(text);
+                const input = document.getElementById('markdown-input');
+                if (input) {
+                    input.value = sample;
+                    updatePreview();
+                }
             }
-        }
 
-        async function copyHTML() {
-            const markdown = document.getElementById('markdown-input').value;
-            const html = parseMarkdown(markdown);
-            try {
-                await navigator.clipboard.writeText(html);
-                showNotification('HTML copied to clipboard!');
-            } catch (err) {
-                fallbackCopyTextToClipboard(html);
+            async function copyToClipboard() {
+                const textarea = document.getElementById('markdown-input');
+                if (!textarea) return;
+                
+                const text = textarea.value;
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showNotification('Markdown copied to clipboard!');
+                } catch (err) {
+                    fallbackCopyTextToClipboard(text);
+                }
             }
-        }
 
-        function fallbackCopyTextToClipboard(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.top = "0";
-            textArea.style.left = "0";
-            textArea.style.position = "fixed";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                document.execCommand('copy');
-                showNotification('Content copied to clipboard!');
-            } catch (err) {
-                showNotification('Failed to copy content');
+            async function copyHTML() {
+                const textarea = document.getElementById('markdown-input');
+                if (!textarea) return;
+                
+                const markdown = textarea.value;
+                const html = parseMarkdown(markdown);
+                try {
+                    await navigator.clipboard.writeText(html);
+                    showNotification('HTML copied to clipboard!');
+                } catch (err) {
+                    fallbackCopyTextToClipboard(html);
+                }
             }
-            
-            document.body.removeChild(textArea);
-        }
 
-        function downloadMarkdown() {
-            const text = document.getElementById('markdown-input').value;
-            const blob = new Blob([text], { type: 'text/markdown' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'document.md';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showNotification('Markdown file downloaded!');
-        }
+            function fallbackCopyTextToClipboard(text) {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.position = "fixed";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    showNotification('Content copied to clipboard!');
+                } catch (err) {
+                    showNotification('Failed to copy content');
+                }
+                
+                document.body.removeChild(textArea);
+            }
 
-        function downloadHTML() {
-            const markdown = document.getElementById('markdown-input').value;
-            const html = `<!DOCTYPE html>
+            function downloadMarkdown() {
+                const textarea = document.getElementById('markdown-input');
+                if (!textarea) return;
+                
+                const text = textarea.value;
+                const blob = new Blob([text], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'document.md';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showNotification('Markdown file downloaded!');
+            }
+
+            function downloadHTML() {
+                const textarea = document.getElementById('markdown-input');
+                if (!textarea) return;
+                
+                const markdown = textarea.value;
+                const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1024,99 +1062,117 @@ Happy writing! 🚀`;
 ${parseMarkdown(markdown)}
 </body>
 </html>`;
-            
-            const blob = new Blob([html], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'document.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showNotification('HTML file downloaded!');
-        }
-
-        function showNotification(message) {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: var(--accent-color);
-                color: white;
-                padding: 12px 24px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 1000;
-                font-weight: 500;
-                animation: slideIn 0.3s ease;
-            `;
-            notification.textContent = message;
-            
-            // Add animation styles
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-            `;
-            document.head.appendChild(style);
-            
-            document.body.appendChild(notification);
-            
-            // Remove after 3 seconds
-            setTimeout(() => {
-                notification.style.animation = 'slideIn 0.3s ease reverse';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
-            }, 3000);
-        }
-
-        // Initialize editor
-        document.addEventListener('DOMContentLoaded', function() {
-            const textarea = document.getElementById('markdown-input');
-            
-            // Load sample content on first load
-            loadSample();
-            
-            // Keyboard shortcuts
-            textarea.addEventListener('keydown', function(e) {
-                if (e.ctrlKey || e.metaKey) {
-                    switch(e.key) {
-                        case 'b':
-                            e.preventDefault();
-                            wrapText('**', '**');
-                            break;
-                        case 'i':
-                            e.preventDefault();
-                            wrapText('*', '*');
-                            break;
-                        case 's':
-                            e.preventDefault();
-                            copyToClipboard();
-                            break;
-                    }
-                }
                 
-                // Tab to indent
-                if (e.key === 'Tab') {
-                    e.preventDefault();
-                    insertText('    ', '');
-                }
-            });
+                const blob = new Blob([html], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'document.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showNotification('HTML file downloaded!');
+            }
 
-            // Auto-resize textarea
-            textarea.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = Math.max(this.scrollHeight, 600) + 'px';
+            function showNotification(message) {
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--accent-color);
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    z-index: 1000;
+                    font-weight: 500;
+                    animation: slideIn 0.3s ease;
+                `;
+                notification.textContent = message;
+                
+                // Add animation styles
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                document.body.appendChild(notification);
+                
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    notification.style.animation = 'slideIn 0.3s ease reverse';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+
+            // Make functions global so they can be called from onclick handlers
+            window.insertText = insertText;
+            window.wrapText = wrapText;
+            window.insertTable = insertTable;
+            window.insertCodeBlock = insertCodeBlock;
+            window.clearEditor = clearEditor;
+            window.loadSample = loadSample;
+            window.copyToClipboard = copyToClipboard;
+            window.copyHTML = copyHTML;
+            window.downloadMarkdown = downloadMarkdown;
+            window.downloadHTML = downloadHTML;
+            window.updatePreview = updatePreview;
+
+            // Initialize editor when DOM is ready
+            document.addEventListener('DOMContentLoaded', function() {
+                const textarea = document.getElementById('markdown-input');
+                if (!textarea) return;
+                
+                // Load sample content on first load
+                loadSample();
+                
+                // Add input listener for real-time updates
+                textarea.addEventListener('input', updatePreview);
+                
+                // Keyboard shortcuts
+                textarea.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey || e.metaKey) {
+                        switch(e.key) {
+                            case 'b':
+                                e.preventDefault();
+                                wrapText('**', '**');
+                                break;
+                            case 'i':
+                                e.preventDefault();
+                                wrapText('*', '*');
+                                break;
+                            case 's':
+                                e.preventDefault();
+                                copyToClipboard();
+                                break;
+                        }
+                    }
+                    
+                    // Tab to indent
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        insertText('    ', '');
+                    }
+                });
+
+                // Auto-resize textarea
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = Math.max(this.scrollHeight, 600) + 'px';
+                });
             });
-        });
+        }
     </script>
 </body>
 </html>
