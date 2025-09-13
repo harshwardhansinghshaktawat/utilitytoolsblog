@@ -1,10 +1,3 @@
----
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
----
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,8 +17,9 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.2/dist/abcjs-basic-min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/abcjs@6.2.2/dist/abcjs-audio.css">
+    <!-- Preload ABCJS for faster loading -->
+    <link rel="preload" href="https://unpkg.com/abcjs@6.2.3/dist/abcjs-min.js" as="script">
+    <link rel="preload" href="https://unpkg.com/abcjs@6.2.3/dist/abcjs-audio.css" as="style">
     
     <style>
         * {
@@ -399,22 +393,6 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             position: relative;
         }
         
-        .abc2midi-progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: abc2midi-shimmer 2s infinite;
-        }
-        
-        @keyframes abc2midi-shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-        
         .abc2midi-download-section {
             margin-top: 2.5rem;
             padding: 2rem;
@@ -455,16 +433,6 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             width: 32px;
             height: 32px;
             fill: #2337FF;
-        }
-        
-        .abc2midi-download-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-        
-        .abc2midi-download-desc {
-            font-size: 0.9rem;
-            opacity: 0.7;
         }
         
         .abc2midi-message {
@@ -617,7 +585,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             }
             
             .abc2midi-textarea {
-                font-size: 16px; /* Prevents zoom on iOS */
+                font-size: 16px;
             }
         }
         
@@ -842,8 +810,8 @@ K:G
                                 <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
                             </svg>
                             <div>
-                                <div class="abc2midi-download-title">MIDI File</div>
-                                <div class="abc2midi-download-desc">Download audio file</div>
+                                <div style="font-weight: 600;">MIDI File</div>
+                                <div style="font-size: 0.9rem; opacity: 0.7;">Download audio file</div>
                             </div>
                         </a>
                         
@@ -852,8 +820,8 @@ K:G
                                 <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
                             </svg>
                             <div>
-                                <div class="abc2midi-download-title">Sheet Music PDF</div>
-                                <div class="abc2midi-download-desc">Print sheet music</div>
+                                <div style="font-weight: 600;">Sheet Music PDF</div>
+                                <div style="font-size: 0.9rem; opacity: 0.7;">Print sheet music</div>
                             </div>
                         </button>
                     </div>
@@ -918,7 +886,37 @@ K:G
         </div>
     </section>
 
+    <!-- Load ABCJS synchronously to avoid Astro/Cloudflare issues -->
+    <script src="https://unpkg.com/abcjs@6.2.3/dist/abcjs-min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/abcjs@6.2.3/dist/abcjs-audio.css">
+
+    <!-- Main converter script - must run after ABCJS loads -->
     <script>
+        // Wait for both DOM and ABCJS to be ready
+        function initWhenReady() {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', checkABCJS);
+            } else {
+                checkABCJS();
+            }
+        }
+
+        function checkABCJS() {
+            if (typeof ABCJS !== 'undefined' && ABCJS.renderAbc) {
+                console.log('ABCJS loaded successfully, initializing converter');
+                console.log('ABCJS methods available:', Object.keys(ABCJS));
+                if (ABCJS.synth) {
+                    console.log('ABCJS.synth methods available:', Object.keys(ABCJS.synth));
+                } else {
+                    console.warn('ABCJS.synth is not available - MIDI features will be limited');
+                }
+                new ABC2MIDIConverter();
+            } else {
+                console.log('ABCJS not ready yet, retrying...');
+                setTimeout(checkABCJS, 100);
+            }
+        }
+
         class ABC2MIDIConverter {
             constructor() {
                 this.abcNotation = `X:1
@@ -936,9 +934,14 @@ K:G
             }
 
             init() {
+                console.log('Initializing ABC2MIDI Converter...');
                 this.setupEventListeners();
                 this.setupAudioContextOnUserInteraction();
-                setTimeout(() => this.convertAndRender(), 500);
+                
+                // Small delay to ensure all DOM elements are ready
+                setTimeout(() => {
+                    this.convertAndRender();
+                }, 100);
             }
 
             setupAudioContextOnUserInteraction() {
@@ -946,9 +949,9 @@ K:G
                     if (!this.audioContext) {
                         try {
                             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                            this.debugLog('Audio context initialized on user interaction');
+                            console.log('Audio context initialized on user interaction');
                         } catch (e) {
-                            this.debugLog(`Failed to initialize audio context: ${e.message}`);
+                            console.error('Failed to initialize audio context:', e.message);
                         }
                     }
                     
@@ -971,30 +974,35 @@ K:G
                 const examplesDropdown = document.getElementById('abc2midi-examples');
                 const pdfDownloadButton = document.getElementById('abc2midi-pdf-download-button');
                 
+                if (!abcInput) {
+                    console.error('Could not find abc input element');
+                    return;
+                }
+                
                 abcInput.addEventListener('input', () => {
                     this.abcNotation = abcInput.value;
                 });
 
-                convertButton.addEventListener('click', () => {
+                convertButton?.addEventListener('click', () => {
                     this.stopMidi();
                     this.abcNotation = abcInput.value;
                     this.convertAndRender();
                 });
 
-                playButton.addEventListener('click', () => {
+                playButton?.addEventListener('click', () => {
                     this.abcNotation = abcInput.value;
                     this.playMidi();
                 });
 
-                stopButton.addEventListener('click', () => {
+                stopButton?.addEventListener('click', () => {
                     this.stopMidi();
                 });
 
-                restartButton.addEventListener('click', () => {
+                restartButton?.addEventListener('click', () => {
                     this.restartMidi();
                 });
 
-                examplesDropdown.addEventListener('change', () => {
+                examplesDropdown?.addEventListener('change', () => {
                     const selectedValue = examplesDropdown.value;
                     if (selectedValue) {
                         this.stopMidi();
@@ -1006,7 +1014,7 @@ K:G
                     }
                 });
 
-                pdfDownloadButton.addEventListener('click', () => {
+                pdfDownloadButton?.addEventListener('click', () => {
                     this.exportSheetMusicAsPdf();
                 });
 
@@ -1177,14 +1185,14 @@ V:B2 name="Bass" clef=bass
                     }
                     
                     if (this.audioContext && this.audioContext.state !== 'closed') {
-                        this.audioContext.suspend().catch(e => this.debugLog(`Error suspending audio context: ${e}`));
+                        this.audioContext.suspend().catch(e => console.log(`Error suspending audio context: ${e}`));
                     }
                     
                     this.visualObj = null;
                     this.isPlaying = false;
-                    this.debugLog('MIDI player and audio context cleaned up');
+                    console.log('MIDI player and audio context cleaned up');
                 } catch (error) {
-                    this.debugLog(`Error cleaning up MIDI player: ${error.message}`);
+                    console.error('Error cleaning up MIDI player:', error);
                 }
             }
 
@@ -1201,26 +1209,26 @@ V:B2 name="Bass" clef=bass
 
                 this.cleanupMidiPlayer();
 
-                errorMessage.style.display = 'none';
-                errorMessage.textContent = '';
-                statusMessage.style.display = 'none';
-                statusMessage.textContent = '';
-                midiDownloadLink.style.display = 'none';
-                pdfDownloadButton.style.display = 'none';
-                
-                if (progressBar) {
-                    progressBar.style.width = '0%';
+                if (errorMessage) {
+                    errorMessage.style.display = 'none';
+                    errorMessage.textContent = '';
                 }
-                if (audioControlsContainer) {
-                    audioControlsContainer.innerHTML = '';
+                if (statusMessage) {
+                    statusMessage.style.display = 'none';
+                    statusMessage.textContent = '';
                 }
+                if (midiDownloadLink) midiDownloadLink.style.display = 'none';
+                if (pdfDownloadButton) pdfDownloadButton.style.display = 'none';
                 
-                loader.style.display = 'block';
+                if (progressBar) progressBar.style.width = '0%';
+                if (audioControlsContainer) audioControlsContainer.innerHTML = '';
+                
+                if (loader) loader.style.display = 'block';
 
-                this.abcNotation = abcInput.value;
+                this.abcNotation = abcInput ? abcInput.value : this.abcNotation;
 
-                if (!window.ABCJS) {
-                    loader.style.display = 'none';
+                if (typeof ABCJS === 'undefined') {
+                    if (loader) loader.style.display = 'none';
                     this.showError('ABCJS library not loaded. Please refresh the page and try again.');
                     return;
                 }
@@ -1231,7 +1239,7 @@ V:B2 name="Bass" clef=bass
                         throw new Error(validation.error);
                     }
 
-                    scoreOutput.innerHTML = '';
+                    if (scoreOutput) scoreOutput.innerHTML = '';
 
                     const renderOptions = {
                         responsive: 'resize',
@@ -1245,7 +1253,7 @@ V:B2 name="Bass" clef=bass
                     };
 
                     try {
-                        this.visualObj = window.ABCJS.renderAbc(scoreOutput, this.abcNotation, renderOptions)[0];
+                        this.visualObj = ABCJS.renderAbc(scoreOutput, this.abcNotation, renderOptions)[0];
                     } catch (renderError) {
                         throw new Error(`Failed to render ABC notation: ${renderError.message}`);
                     }
@@ -1254,56 +1262,52 @@ V:B2 name="Bass" clef=bass
                         throw new Error('Failed to render ABC notation. Please check your syntax.');
                     }
 
-                    this.debugLog('Rendered visual object successfully');
+                    console.log('Rendered visual object successfully');
 
-                    // Check for synth support with better detection
-                    const hasMidiSupport = window.ABCJS && 
-                                          window.ABCJS.synth && 
-                                          window.ABCJS.synth.SynthController && 
-                                          window.ABCJS.synth.getMidiFile;
-                                          
-                    this.debugLog(`MIDI support available: ${hasMidiSupport}`);
+                    // Check for synth support
+                    const hasMidiSupport = ABCJS.synth && ABCJS.synth.SynthController;
+                    console.log('MIDI support available:', !!hasMidiSupport);
                     
                     if (hasMidiSupport) {
                         if (!this.audioContext) {
                             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                            this.debugLog('Created new audio context');
+                            console.log('Created new audio context');
                         }
                         
                         if (this.audioContext.state === 'suspended') {
                             this.audioContext.resume()
-                                .then(() => this.debugLog('Audio context resumed'))
-                                .catch(e => this.debugLog(`Error resuming audio context: ${e}`));
+                                .then(() => console.log('Audio context resumed'))
+                                .catch(e => console.log(`Error resuming audio context: ${e}`));
                         }
                         
                         this.initializeSynthControl()
                             .then(() => {
                                 const midiData = this.generateMidiDownload();
-                                if (midiData) {
+                                if (midiData && midiDownloadLink) {
                                     midiDownloadLink.href = midiData;
                                     midiDownloadLink.style.display = 'flex';
                                 }
-                                pdfDownloadButton.style.display = 'flex';
-                                loader.style.display = 'none';
+                                if (pdfDownloadButton) pdfDownloadButton.style.display = 'flex';
+                                if (loader) loader.style.display = 'none';
                                 this.showStatus('ABC notation converted successfully!');
                             })
                             .catch(error => {
-                                loader.style.display = 'none';
+                                if (loader) loader.style.display = 'none';
                                 this.showError(`MIDI playback initialization failed: ${error.message}`);
                                 const midiData = this.generateMidiDownload();
-                                if (midiData) {
+                                if (midiData && midiDownloadLink) {
                                     midiDownloadLink.href = midiData;
                                     midiDownloadLink.style.display = 'flex';
                                 }
-                                pdfDownloadButton.style.display = 'flex';
+                                if (pdfDownloadButton) pdfDownloadButton.style.display = 'flex';
                             });
                     } else {
-                        loader.style.display = 'none';
+                        if (loader) loader.style.display = 'none';
                         this.showStatus('Score rendered (MIDI features not available in this browser)');
-                        pdfDownloadButton.style.display = 'flex';
+                        if (pdfDownloadButton) pdfDownloadButton.style.display = 'flex';
                     }
                 } catch (error) {
-                    loader.style.display = 'none';
+                    if (loader) loader.style.display = 'none';
                     this.showError(error.message || 'Failed to convert ABC notation. Please check your input syntax.');
                 }
             }
@@ -1316,7 +1320,7 @@ V:B2 name="Bass" clef=bass
                         }
                         
                         if (this.audioContext.state === 'suspended') {
-                            this.audioContext.resume().catch(e => this.debugLog(`Error resuming audio context: ${e}`));
+                            this.audioContext.resume().catch(e => console.log(`Error resuming audio context: ${e}`));
                         }
                         
                         const audioControlsContainer = document.getElementById('abc2midi-audio-controls-container');
@@ -1331,9 +1335,9 @@ V:B2 name="Bass" clef=bass
                         synthWrapper.id = 'abc2midi-synthcontrol';
                         audioControlsContainer.appendChild(synthWrapper);
                         
-                        this.synthControl = new window.ABCJS.synth.SynthController();
+                        this.synthControl = new ABCJS.synth.SynthController();
                         
-                        this.debugLog('Setting up synth controller with direct element reference');
+                        console.log('Setting up synth controller');
                         
                         this.synthControl.load(synthWrapper, this.cursorControl, {
                             displayLoop: true,
@@ -1352,14 +1356,14 @@ V:B2 name="Bass" clef=bass
                             soundFontUrl: "https://paulrosen.github.io/midi-js-soundfonts/FluidR3_GM/",
                             pan: this.getPanSettings(this.abcNotation)
                         }).then(() => {
-                            this.debugLog('Synth controller initialized successfully');
+                            console.log('Synth controller initialized successfully');
                             resolve();
                         }).catch(error => {
-                            this.debugLog(`Error initializing synth controller: ${error.message}`);
+                            console.error('Error initializing synth controller:', error);
                             reject(error);
                         });
                     } catch (error) {
-                        this.debugLog(`Error in initializeSynthControl: ${error.message}`);
+                        console.error('Error in initializeSynthControl:', error);
                         reject(error);
                     }
                 });
@@ -1408,14 +1412,14 @@ V:B2 name="Bass" clef=bass
                     panArray.push(pan);
                 }
 
-                this.debugLog(`Created pan settings for ${voiceCount} voices: ${JSON.stringify(panArray)}`);
+                console.log(`Created pan settings for ${voiceCount} voices:`, panArray);
                 return panArray;
             }
 
             generateMidiDownload() {
                 try {
                     if (!this.abcNotation || this.abcNotation.trim() === '') {
-                        this.debugLog('No ABC notation to generate MIDI');
+                        console.log('No ABC notation to generate MIDI');
                         return null;
                     }
 
@@ -1429,19 +1433,19 @@ V:B2 name="Bass" clef=bass
                         document.body.appendChild(tempDiv);
 
                         try {
-                            visualObj = window.ABCJS.renderAbc(tempDiv, this.abcNotation, {
+                            visualObj = ABCJS.renderAbc(tempDiv, this.abcNotation, {
                                 add_classes: false,
                                 responsive: false
                             })[0];
                         } catch (parseError) {
-                            this.debugLog(`Error parsing for MIDI generation: ${parseError.message}`);
+                            console.log('Error parsing for MIDI generation:', parseError);
                             return null;
                         }
                         document.body.removeChild(tempDiv);
                     }
 
                     let midiBuffer;
-                    if (window.ABCJS.synth && window.ABCJS.synth.getMidiFile) {
+                    if (ABCJS.synth && ABCJS.synth.getMidiFile) {
                         const midiOptions = {
                             midiOutputType: 'binary',
                             generateDownload: true,
@@ -1451,13 +1455,13 @@ V:B2 name="Bass" clef=bass
                             voicesOff: false,
                             chordsOff: false
                         };
-                        midiBuffer = window.ABCJS.synth.getMidiFile(visualObj, midiOptions);
+                        midiBuffer = ABCJS.synth.getMidiFile(visualObj, midiOptions);
                     } else {
                         throw new Error('MIDI generation not supported');
                     }
 
                     if (!midiBuffer || !midiBuffer.length) {
-                        this.debugLog('Generated MIDI buffer is empty');
+                        console.log('Generated MIDI buffer is empty');
                         return null;
                     }
 
@@ -1467,10 +1471,10 @@ V:B2 name="Bass" clef=bass
                             .join('')
                     );
 
-                    this.debugLog(`Generated MIDI file with size: ${midiBuffer.length} bytes`);
+                    console.log(`Generated MIDI file with size: ${midiBuffer.length} bytes`);
                     return base64;
                 } catch (error) {
-                    this.debugLog(`Error generating MIDI download: ${error.message}`);
+                    console.error('Error generating MIDI download:', error);
                     return null;
                 }
             }
@@ -1530,7 +1534,7 @@ V:B2 name="Bass" clef=bass
                         document.body.removeChild(printContainer);
                     }, 100);
 
-                    this.debugLog('Initiated sheet music PDF export');
+                    console.log('Initiated sheet music PDF export');
                 } catch (error) {
                     this.showError('Failed to export sheet music as PDF');
                 }
@@ -1539,9 +1543,9 @@ V:B2 name="Bass" clef=bass
             playMidi() {
                 try {
                     const abcInput = document.getElementById('abc2midi-abc-input');
-                    this.abcNotation = abcInput.value;
+                    this.abcNotation = abcInput ? abcInput.value : this.abcNotation;
                     const errorMessage = document.getElementById('abc2midi-error-message');
-                    errorMessage.style.display = 'none';
+                    if (errorMessage) errorMessage.style.display = 'none';
 
                     const validation = this.validateAbcNotation(this.abcNotation);
                     if (!validation.valid) {
@@ -1573,14 +1577,14 @@ V:B2 name="Bass" clef=bass
                     }
                     
                     if (this.audioContext && this.audioContext.state === 'suspended') {
-                        this.audioContext.resume().catch(e => this.debugLog(`Error resuming audio context: ${e}`));
+                        this.audioContext.resume().catch(e => console.log(`Error resuming audio context: ${e}`));
                     }
                     
                     this.showStatus('Starting playback...');
                     
                     this.synthControl.play();
                     this.isPlaying = true;
-                    this.debugLog('MIDI playback started successfully');
+                    console.log('MIDI playback started successfully');
                 } catch (error) {
                     this.handlePlaybackError(error);
                 }
@@ -1611,7 +1615,7 @@ V:B2 name="Bass" clef=bass
                         if (typeof this.synthControl.pause === 'function') {
                             this.synthControl.pause();
                         }
-                        this.debugLog('MIDI playback stopped');
+                        console.log('MIDI playback stopped');
                         const progressBar = document.getElementById('abc2midi-progress-bar');
                         if (progressBar) {
                             progressBar.style.width = '0%';
@@ -1620,25 +1624,25 @@ V:B2 name="Bass" clef=bass
                     }
                     
                     if (this.audioContext && this.audioContext.state === 'running') {
-                        this.audioContext.suspend().catch(e => this.debugLog(`Error suspending audio context: ${e}`));
+                        this.audioContext.suspend().catch(e => console.log(`Error suspending audio context: ${e}`));
                     }
                 } catch (error) {
-                    this.debugLog(`Error stopping MIDI: ${error.message}`);
+                    console.error('Error stopping MIDI:', error);
                 }
             }
 
             restartMidi() {
                 this.stopMidi();
-                this.debugLog('Restarting MIDI playback');
+                console.log('Restarting MIDI playback');
                 
                 setTimeout(() => {
                     if (this.synthControl) {
                         try {
                             this.synthControl.restart();
                             this.isPlaying = true;
-                            this.debugLog('MIDI playback restarted successfully');
+                            console.log('MIDI playback restarted successfully');
                         } catch (error) {
-                            this.debugLog(`Error restarting MIDI: ${error.message}`);
+                            console.log('Error restarting MIDI:', error);
                             this.playMidi();
                         }
                     } else {
@@ -1649,9 +1653,11 @@ V:B2 name="Bass" clef=bass
 
             showError(message) {
                 const errorMessage = document.getElementById('abc2midi-error-message');
-                errorMessage.textContent = message;
-                errorMessage.style.display = 'block';
-                this.debugLog(`Error: ${message}`);
+                if (errorMessage) {
+                    errorMessage.textContent = message;
+                    errorMessage.style.display = 'block';
+                }
+                console.error('Error:', message);
             }
 
             showStatus(message) {
@@ -1663,29 +1669,12 @@ V:B2 name="Bass" clef=bass
                         statusMessage.style.display = 'none';
                     }, 5000);
                 }
-                this.debugLog(`Status: ${message}`);
-            }
-
-            debugLog(message) {
-                const debugInfo = document.getElementById('abc2midi-debug-info');
-                if (debugInfo) {
-                    const timestamp = new Date().toLocaleTimeString();
-                    const newLine = document.createElement('div');
-                    newLine.textContent = `[${timestamp}] ${message}`;
-                    while (debugInfo.childNodes.length >= 20) {
-                        debugInfo.removeChild(debugInfo.firstChild);
-                    }
-                    debugInfo.appendChild(newLine);
-                    debugInfo.scrollTop = debugInfo.scrollHeight;
-                }
-                console.log(message);
+                console.log('Status:', message);
             }
         }
 
-        // Initialize the converter when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            new ABC2MIDIConverter();
-        });
+        // Initialize when ready
+        initWhenReady();
 
         // Schema.org structured data for SEO
         const structuredData = {
