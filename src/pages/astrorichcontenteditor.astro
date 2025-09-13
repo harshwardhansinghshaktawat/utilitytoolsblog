@@ -13,27 +13,47 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 	<head>
 		<BaseHead title={`${title} | ${SITE_TITLE}`} description={description} />
 		<style>
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				padding: 0;
+				min-height: 100vh;
+				display: flex;
+				flex-direction: column;
+			}
+
+			main {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+			}
+
 			.editor-container {
-				max-width: 1200px;
-				margin: 0 auto;
-				padding: 2rem 1rem;
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				padding: 1rem;
+				min-height: calc(100vh - 120px);
 			}
 
 			.editor-header {
 				text-align: center;
-				margin-bottom: 2rem;
+				margin-bottom: 1.5rem;
 			}
 
 			.editor-header h1 {
 				color: #0F1219;
-				font-size: 2.5rem;
+				font-size: 2rem;
 				margin-bottom: 0.5rem;
 			}
 
 			.editor-header p {
 				color: #0F1219;
 				opacity: 0.8;
-				font-size: 1.1rem;
+				font-size: 1rem;
 			}
 
 			.toolbar {
@@ -81,12 +101,15 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 				border: 1px solid #2337FF;
 				border-radius: 0 0 8px 8px;
 				overflow: hidden;
+				flex: 1;
 				min-height: 600px;
 			}
 
 			.editor-panel, .output-panel {
 				padding: 1.5rem;
 				overflow-y: auto;
+				display: flex;
+				flex-direction: column;
 			}
 
 			.editor-panel {
@@ -99,7 +122,7 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 			}
 
 			.editor {
-				min-height: 500px;
+				flex: 1;
 				border: 1px solid #2337FF;
 				border-radius: 4px;
 				padding: 1rem;
@@ -108,11 +131,37 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 				outline: none;
 				background: white;
 				color: #0F1219;
+				overflow-y: auto;
 			}
 
 			.editor:focus {
 				border-color: #2337FF;
 				box-shadow: 0 0 0 2px rgba(35, 55, 255, 0.1);
+			}
+
+			/* Table styling in editor */
+			.editor table {
+				border-collapse: collapse;
+				width: 100%;
+				margin: 1rem 0;
+				border: 2px solid #2337FF;
+			}
+
+			.editor th, .editor td {
+				border: 1px solid #2337FF;
+				padding: 8px 12px;
+				text-align: left;
+				min-width: 100px;
+				position: relative;
+			}
+
+			.editor th {
+				background: #F8F9FB;
+				font-weight: 600;
+			}
+
+			.editor td:hover, .editor th:hover {
+				background: rgba(35, 55, 255, 0.05);
 			}
 
 			.output {
@@ -125,7 +174,7 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 				line-height: 1.6;
 				white-space: pre-wrap;
 				word-wrap: break-word;
-				min-height: 500px;
+				flex: 1;
 			}
 
 			.panel-header {
@@ -135,6 +184,7 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
+				flex-shrink: 0;
 			}
 
 			.copy-btn {
@@ -159,8 +209,9 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 				padding: 1rem;
 				font-size: 1rem;
 				line-height: 1.6;
-				min-height: 500px;
+				flex: 1;
 				color: #0F1219;
+				overflow-y: auto;
 			}
 
 			.preview-mode h1, .preview-mode h2, .preview-mode h3, 
@@ -246,33 +297,71 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 				background: #F8F9FB;
 				border: 1px solid #2337FF;
 				border-radius: 8px;
-				padding: 1.5rem;
-				margin-bottom: 2rem;
+				padding: 1rem;
+				margin-bottom: 1rem;
+				flex-shrink: 0;
 			}
 
 			.instructions h2 {
 				color: #0F1219;
-				margin-bottom: 1rem;
+				margin-bottom: 0.75rem;
+				font-size: 1.1rem;
 			}
 
 			.instructions ul {
 				color: #0F1219;
 				padding-left: 1.5rem;
+				margin: 0;
 			}
 
 			.instructions li {
-				margin-bottom: 0.5rem;
+				margin-bottom: 0.25rem;
+				font-size: 0.9rem;
+			}
+
+			/* Table Context Menu */
+			.table-menu {
+				position: absolute;
+				background: white;
+				border: 1px solid #2337FF;
+				border-radius: 4px;
+				padding: 0.5rem;
+				display: none;
+				z-index: 1000;
+				box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+			}
+
+			.table-menu-btn {
+				display: block;
+				width: 100%;
+				background: none;
+				border: none;
+				padding: 0.5rem;
+				text-align: left;
+				cursor: pointer;
+				color: #0F1219;
+				font-size: 0.875rem;
+				border-radius: 2px;
+			}
+
+			.table-menu-btn:hover {
+				background: #F8F9FB;
 			}
 
 			@media (max-width: 768px) {
 				.main-editor {
 					grid-template-columns: 1fr;
-					height: auto;
+					min-height: auto;
 				}
 				
 				.editor-panel {
 					border-right: none;
 					border-bottom: 1px solid #2337FF;
+					min-height: 400px;
+				}
+
+				.output-panel {
+					min-height: 300px;
 				}
 				
 				.toolbar {
@@ -285,11 +374,47 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 				}
 
 				.editor-container {
-					padding: 1rem 0.5rem;
+					padding: 0.5rem;
 				}
 
 				.editor-header h1 {
-					font-size: 2rem;
+					font-size: 1.5rem;
+				}
+
+				.editor-header p {
+					font-size: 0.9rem;
+				}
+
+				.instructions {
+					padding: 0.75rem;
+				}
+
+				.instructions h2 {
+					font-size: 1rem;
+				}
+
+				.instructions li {
+					font-size: 0.8rem;
+				}
+			}
+
+			@media (max-width: 480px) {
+				.btn-group {
+					flex-wrap: wrap;
+				}
+
+				.toolbar-btn {
+					flex: 1;
+					min-width: 60px;
+				}
+
+				.editor {
+					padding: 0.75rem;
+				}
+
+				.output {
+					padding: 0.75rem;
+					font-size: 0.8rem;
 				}
 			}
 		</style>
@@ -306,11 +431,8 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 				<div class="instructions">
 					<h2>How to Use</h2>
 					<ul>
-						<li><strong>Type or paste content</strong> in the editor below</li>
-						<li><strong>Use toolbar buttons</strong> to format text and add elements</li>
-						<li><strong>View live markdown</strong> in the output panel</li>
-						<li><strong>Switch to Preview</strong> to see how it will render</li>
-						<li><strong>Copy the markdown</strong> for use in your Astro project</li>
+						<li><strong>Type or paste content</strong> in the editor • <strong>Use toolbar buttons</strong> to format • <strong>Right-click tables</strong> to edit</li>
+						<li><strong>View live markdown</strong> in output • <strong>Switch to Preview</strong> to see rendering • <strong>Copy markdown</strong> for Astro</li>
 					</ul>
 				</div>
 
@@ -356,7 +478,7 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 						<div class="panel-header">
 							<span>Rich Text Editor</span>
 						</div>
-						<div id="editor" class="editor" contenteditable="true" oninput="convertToMarkdown()">
+						<div id="editor" class="editor" contenteditable="true">
 							<h1>Welcome to Astro Markdown Editor</h1>
 							<p>Start typing your content here. Use the toolbar above to format your text.</p>
 							<h2>Features</h2>
@@ -365,7 +487,7 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 								<li>Headers from H1 to H6</li>
 								<li>Bullet and numbered lists</li>
 								<li>Code blocks and inline <code>code</code></li>
-								<li>Tables and blockquotes</li>
+								<li>Interactive tables with editing options</li>
 							</ul>
 							<p>This editor generates clean markdown that works perfectly with Astro's content system.</p>
 						</div>
@@ -384,106 +506,243 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 					</div>
 				</div>
 			</div>
+
+			<!-- Table Context Menu -->
+			<div id="table-menu" class="table-menu">
+				<button class="table-menu-btn" onclick="addRowAbove()">Add Row Above</button>
+				<button class="table-menu-btn" onclick="addRowBelow()">Add Row Below</button>
+				<button class="table-menu-btn" onclick="addColumnLeft()">Add Column Left</button>
+				<button class="table-menu-btn" onclick="addColumnRight()">Add Column Right</button>
+				<button class="table-menu-btn" onclick="deleteRow()">Delete Row</button>
+				<button class="table-menu-btn" onclick="deleteColumn()">Delete Column</button>
+				<button class="table-menu-btn" onclick="toggleHeader()">Toggle Header</button>
+			</div>
 		</main>
 		<Footer />
 
 		<script>
 			let currentTab = 'markdown';
+			let currentTable = null;
+			let currentCell = null;
+
+			// Maintain focus after toolbar operations
+			function saveSelection() {
+				const selection = window.getSelection();
+				if (selection.rangeCount > 0) {
+					return selection.getRangeAt(0);
+				}
+				return null;
+			}
+
+			function restoreSelection(range) {
+				if (range) {
+					const selection = window.getSelection();
+					selection.removeAllRanges();
+					selection.addRange(range);
+				}
+			}
 
 			function formatText(command) {
+				const range = saveSelection();
 				document.execCommand(command, false, null);
-				convertToMarkdown();
+				setTimeout(() => {
+					document.getElementById('editor').focus();
+					if (range) restoreSelection(range);
+					convertToMarkdown();
+				}, 10);
 			}
 
 			function insertHeading(level) {
+				const range = saveSelection();
 				const selection = window.getSelection();
-				const range = selection.getRangeAt(0);
-				const heading = document.createElement('h' + level);
-				heading.textContent = 'Heading ' + level;
 				
-				try {
-					range.deleteContents();
-					range.insertNode(heading);
-					range.selectNode(heading);
-					selection.removeAllRanges();
-					selection.addRange(range);
-				} catch (e) {
-					document.execCommand('formatBlock', false, 'h' + level);
+				if (selection.toString()) {
+					// Wrap selected text
+					const heading = document.createElement('h' + level);
+					heading.textContent = selection.toString();
+					
+					if (range) {
+						range.deleteContents();
+						range.insertNode(heading);
+						
+						// Position cursor after heading
+						const newRange = document.createRange();
+						newRange.setStartAfter(heading);
+						newRange.setEndAfter(heading);
+						selection.removeAllRanges();
+						selection.addRange(newRange);
+					}
+				} else {
+					// Insert new heading
+					const heading = document.createElement('h' + level);
+					heading.textContent = 'Heading ' + level;
+					
+					if (range) {
+						range.insertNode(heading);
+						
+						// Select the text for editing
+						const newRange = document.createRange();
+						newRange.selectNodeContents(heading);
+						selection.removeAllRanges();
+						selection.addRange(newRange);
+					}
 				}
-				convertToMarkdown();
+				
+				setTimeout(() => {
+					document.getElementById('editor').focus();
+					convertToMarkdown();
+				}, 10);
 			}
 
 			function insertList(type) {
+				const range = saveSelection();
 				document.execCommand('insert' + (type === 'ul' ? 'UnorderedList' : 'OrderedList'), false, null);
-				convertToMarkdown();
+				setTimeout(() => {
+					document.getElementById('editor').focus();
+					convertToMarkdown();
+				}, 10);
 			}
 
 			function insertBlockquote() {
+				const range = saveSelection();
 				document.execCommand('formatBlock', false, 'blockquote');
-				convertToMarkdown();
+				setTimeout(() => {
+					document.getElementById('editor').focus();
+					convertToMarkdown();
+				}, 10);
 			}
 
 			function insertCode() {
 				const selection = window.getSelection();
 				const text = selection.toString();
+				
 				if (text) {
 					const code = document.createElement('code');
 					code.textContent = text;
 					const range = selection.getRangeAt(0);
 					range.deleteContents();
 					range.insertNode(code);
+					
+					// Position cursor after code
+					const newRange = document.createRange();
+					newRange.setStartAfter(code);
+					newRange.setEndAfter(code);
+					selection.removeAllRanges();
+					selection.addRange(newRange);
+				} else {
+					const code = document.createElement('code');
+					code.textContent = 'code';
+					const range = selection.getRangeAt(0);
+					range.insertNode(code);
+					
+					// Select the code text for editing
+					const newRange = document.createRange();
+					newRange.selectNodeContents(code);
+					selection.removeAllRanges();
+					selection.addRange(newRange);
 				}
-				convertToMarkdown();
+				
+				setTimeout(() => {
+					document.getElementById('editor').focus();
+					convertToMarkdown();
+				}, 10);
 			}
 
 			function insertCodeBlock() {
+				const range = saveSelection();
 				const pre = document.createElement('pre');
 				const code = document.createElement('code');
 				code.textContent = 'console.log("Hello, Astro!");';
 				pre.appendChild(code);
 				
-				const selection = window.getSelection();
-				const range = selection.getRangeAt(0);
-				range.deleteContents();
-				range.insertNode(pre);
-				convertToMarkdown();
+				if (range) {
+					range.insertNode(pre);
+					
+					// Select the code text for editing
+					const newRange = document.createRange();
+					newRange.selectNodeContents(code);
+					const selection = window.getSelection();
+					selection.removeAllRanges();
+					selection.addRange(newRange);
+				}
+				
+				setTimeout(() => {
+					document.getElementById('editor').focus();
+					convertToMarkdown();
+				}, 10);
 			}
 
 			function insertTable() {
-				const tableHTML = `
-					<table>
-						<thead>
-							<tr>
-								<th>Header 1</th>
-								<th>Header 2</th>
-								<th>Header 3</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>Cell 1</td>
-								<td>Cell 2</td>
-								<td>Cell 3</td>
-							</tr>
-							<tr>
-								<td>Cell 4</td>
-								<td>Cell 5</td>
-								<td>Cell 6</td>
-							</tr>
-						</tbody>
-					</table>
-				`;
-				document.execCommand('insertHTML', false, tableHTML);
-				convertToMarkdown();
+				const range = saveSelection();
+				const table = document.createElement('table');
+				
+				// Create header row
+				const thead = document.createElement('thead');
+				const headerRow = document.createElement('tr');
+				for (let i = 1; i <= 3; i++) {
+					const th = document.createElement('th');
+					th.textContent = `Header ${i}`;
+					th.contentEditable = true;
+					headerRow.appendChild(th);
+				}
+				thead.appendChild(headerRow);
+				table.appendChild(thead);
+				
+				// Create body rows
+				const tbody = document.createElement('tbody');
+				for (let i = 1; i <= 2; i++) {
+					const row = document.createElement('tr');
+					for (let j = 1; j <= 3; j++) {
+						const td = document.createElement('td');
+						td.textContent = `Cell ${(i-1)*3 + j}`;
+						td.contentEditable = true;
+						row.appendChild(td);
+					}
+					tbody.appendChild(row);
+				}
+				table.appendChild(tbody);
+				
+				if (range) {
+					range.insertNode(table);
+					
+					// Add some space after table
+					const br = document.createElement('br');
+					const newRange = document.createRange();
+					newRange.setStartAfter(table);
+					newRange.insertNode(br);
+				}
+				
+				setTimeout(() => {
+					document.getElementById('editor').focus();
+					convertToMarkdown();
+				}, 10);
 			}
 
 			function insertLink() {
 				const url = prompt('Enter URL:');
 				const text = prompt('Enter link text:') || url;
 				if (url) {
-					const link = `<a href="${url}">${text}</a>`;
-					document.execCommand('insertHTML', false, link);
-					convertToMarkdown();
+					const range = saveSelection();
+					const link = document.createElement('a');
+					link.href = url;
+					link.textContent = text;
+					
+					if (range) {
+						range.insertNode(link);
+						
+						// Position cursor after link
+						const newRange = document.createRange();
+						newRange.setStartAfter(link);
+						newRange.setEndAfter(link);
+						const selection = window.getSelection();
+						selection.removeAllRanges();
+						selection.addRange(newRange);
+					}
+					
+					setTimeout(() => {
+						document.getElementById('editor').focus();
+						convertToMarkdown();
+					}, 10);
 				}
 			}
 
@@ -491,12 +750,156 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 				const url = prompt('Enter image URL:');
 				const alt = prompt('Enter alt text:') || 'Image';
 				if (url) {
-					const img = `<img src="${url}" alt="${alt}" />`;
-					document.execCommand('insertHTML', false, img);
-					convertToMarkdown();
+					const range = saveSelection();
+					const img = document.createElement('img');
+					img.src = url;
+					img.alt = alt;
+					img.style.maxWidth = '100%';
+					
+					if (range) {
+						range.insertNode(img);
+						
+						// Add space after image
+						const br = document.createElement('br');
+						const newRange = document.createRange();
+						newRange.setStartAfter(img);
+						newRange.insertNode(br);
+					}
+					
+					setTimeout(() => {
+						document.getElementById('editor').focus();
+						convertToMarkdown();
+					}, 10);
 				}
 			}
 
+			// Table editing functions
+			function addRowAbove() {
+				if (!currentCell) return;
+				const row = currentCell.parentElement;
+				const newRow = row.cloneNode(true);
+				
+				// Clear content and make editable
+				Array.from(newRow.children).forEach(cell => {
+					cell.textContent = '';
+					cell.contentEditable = true;
+				});
+				
+				row.parentElement.insertBefore(newRow, row);
+				hideTableMenu();
+				convertToMarkdown();
+			}
+
+			function addRowBelow() {
+				if (!currentCell) return;
+				const row = currentCell.parentElement;
+				const newRow = row.cloneNode(true);
+				
+				// Clear content and make editable
+				Array.from(newRow.children).forEach(cell => {
+					cell.textContent = '';
+					cell.contentEditable = true;
+				});
+				
+				row.parentElement.insertBefore(newRow, row.nextSibling);
+				hideTableMenu();
+				convertToMarkdown();
+			}
+
+			function addColumnLeft() {
+				if (!currentCell) return;
+				const cellIndex = Array.from(currentCell.parentElement.children).indexOf(currentCell);
+				const table = currentTable;
+				
+				Array.from(table.querySelectorAll('tr')).forEach(row => {
+					const newCell = row.children[0].tagName === 'TH' ? 
+						document.createElement('th') : document.createElement('td');
+					newCell.textContent = '';
+					newCell.contentEditable = true;
+					row.insertBefore(newCell, row.children[cellIndex]);
+				});
+				
+				hideTableMenu();
+				convertToMarkdown();
+			}
+
+			function addColumnRight() {
+				if (!currentCell) return;
+				const cellIndex = Array.from(currentCell.parentElement.children).indexOf(currentCell);
+				const table = currentTable;
+				
+				Array.from(table.querySelectorAll('tr')).forEach(row => {
+					const newCell = row.children[0].tagName === 'TH' ? 
+						document.createElement('th') : document.createElement('td');
+					newCell.textContent = '';
+					newCell.contentEditable = true;
+					row.insertBefore(newCell, row.children[cellIndex + 1]);
+				});
+				
+				hideTableMenu();
+				convertToMarkdown();
+			}
+
+			function deleteRow() {
+				if (!currentCell) return;
+				const row = currentCell.parentElement;
+				if (row.parentElement.children.length > 1) {
+					row.remove();
+				}
+				hideTableMenu();
+				convertToMarkdown();
+			}
+
+			function deleteColumn() {
+				if (!currentCell) return;
+				const cellIndex = Array.from(currentCell.parentElement.children).indexOf(currentCell);
+				const table = currentTable;
+				
+				if (table.querySelector('tr').children.length > 1) {
+					Array.from(table.querySelectorAll('tr')).forEach(row => {
+						if (row.children[cellIndex]) {
+							row.children[cellIndex].remove();
+						}
+					});
+				}
+				
+				hideTableMenu();
+				convertToMarkdown();
+			}
+
+			function toggleHeader() {
+				if (!currentCell) return;
+				const row = currentCell.parentElement;
+				const isHeader = currentCell.tagName === 'TH';
+				
+				Array.from(row.children).forEach(cell => {
+					const newCell = document.createElement(isHeader ? 'td' : 'th');
+					newCell.textContent = cell.textContent;
+					newCell.contentEditable = true;
+					row.replaceChild(newCell, cell);
+				});
+				
+				hideTableMenu();
+				convertToMarkdown();
+			}
+
+			function showTableMenu(e, cell, table) {
+				currentCell = cell;
+				currentTable = table;
+				const menu = document.getElementById('table-menu');
+				menu.style.display = 'block';
+				menu.style.left = e.pageX + 'px';
+				menu.style.top = e.pageY + 'px';
+				e.preventDefault();
+			}
+
+			function hideTableMenu() {
+				document.getElementById('table-menu').style.display = 'none';
+				currentCell = null;
+				currentTable = null;
+			}
+
+			// Markdown conversion functions
 			function htmlToMarkdown(html) {
 				const tempDiv = document.createElement('div');
 				tempDiv.innerHTML = html;
@@ -557,7 +960,7 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 						let ulResult = '';
 						for (let li of element.children) {
 							if (li.tagName.toLowerCase() === 'li') {
-								ulResult += `- ${processNode(li)}\n`;
+								ulResult += `- ${processNode(li).trim()}\n`;
 							}
 						}
 						return ulResult + '\n';
@@ -567,7 +970,7 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 						let counter = 1;
 						for (let li of element.children) {
 							if (li.tagName.toLowerCase() === 'li') {
-								olResult += `${counter}. ${processNode(li)}\n`;
+								olResult += `${counter}. ${processNode(li).trim()}\n`;
 								counter++;
 							}
 						}
@@ -605,17 +1008,27 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 				
 				if (rows.length === 0) return '';
 				
-				const headerRow = rows[0];
-				const headerCells = headerRow.querySelectorAll('th, td');
-				const headers = Array.from(headerCells).map(cell => processNode(cell).trim());
-				
-				result += '| ' + headers.join(' | ') + ' |\n';
-				result += '| ' + headers.map(() => '---').join(' | ') + ' |\n';
-				
-				for (let i = 1; i < rows.length; i++) {
+				// Process all rows
+				let hasHeader = false;
+				for (let i = 0; i < rows.length; i++) {
 					const cells = rows[i].querySelectorAll('td, th');
 					const cellContents = Array.from(cells).map(cell => processNode(cell).trim());
 					result += '| ' + cellContents.join(' | ') + ' |\n';
+					
+					// Add separator after first row if it contains headers
+					if (i === 0 && rows[i].querySelector('th')) {
+						result += '| ' + cellContents.map(() => '---').join(' | ') + ' |\n';
+						hasHeader = true;
+					}
+				}
+				
+				// If no header was found, add separator after first row
+				if (!hasHeader && rows.length > 0) {
+					const firstRowCells = rows[0].querySelectorAll('td, th');
+					const separatorLine = '| ' + Array.from(firstRowCells).map(() => '---').join(' | ') + ' |\n';
+					const lines = result.split('\n');
+					lines.splice(1, 0, separatorLine);
+					result = lines.join('\n');
 				}
 				
 				return result + '\n';
@@ -624,7 +1037,6 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 			function convertToMarkdown() {
 				const editor = document.getElementById('editor');
 				const output = document.getElementById('markdown-output');
-				const preview = document.getElementById('preview-output');
 				
 				const markdown = htmlToMarkdown(editor.innerHTML);
 				output.textContent = markdown;
@@ -687,21 +1099,46 @@ const description = 'Create rich content and convert it to Astro-compatible mark
 				});
 			}
 
-			// Initialize
-			convertToMarkdown();
+			// Event listeners
+			document.addEventListener('DOMContentLoaded', function() {
+				const editor = document.getElementById('editor');
+				
+				// Convert to markdown on input
+				editor.addEventListener('input', convertToMarkdown);
+				
+				// Table context menu
+				editor.addEventListener('contextmenu', function(e) {
+					const cell = e.target.closest('td, th');
+					const table = e.target.closest('table');
+					
+					if (cell && table) {
+						showTableMenu(e, cell, table);
+					} else {
+						hideTableMenu();
+					}
+				});
+				
+				// Hide table menu on click outside
+				document.addEventListener('click', function(e) {
+					if (!e.target.closest('#table-menu')) {
+						hideTableMenu();
+					}
+				});
+				
+				// Auto-save to localStorage
+				editor.addEventListener('input', () => {
+					localStorage.setItem('astro-markdown-editor-content', editor.innerHTML);
+				});
 
-			// Auto-save to localStorage
-			const editor = document.getElementById('editor');
-			editor.addEventListener('input', () => {
-				localStorage.setItem('astro-markdown-editor-content', editor.innerHTML);
-			});
-
-			// Load saved content
-			const savedContent = localStorage.getItem('astro-markdown-editor-content');
-			if (savedContent) {
-				editor.innerHTML = savedContent;
+				// Load saved content
+				const savedContent = localStorage.getItem('astro-markdown-editor-content');
+				if (savedContent) {
+					editor.innerHTML = savedContent;
+				}
+				
+				// Initialize
 				convertToMarkdown();
-			}
+			});
 		</script>
 	</body>
 </html>
