@@ -12,3 +12,13 @@
   },
   "upload_source_maps": true
 }
+
+
+{
+    "routes": [
+      {
+        "pattern": "bestaiapps.blog",
+        "custom_domain": true
+      }
+    ]
+  }
