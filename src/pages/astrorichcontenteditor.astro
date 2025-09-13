@@ -419,10 +419,6 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
         <div class="editor-section">
             <div class="section-header">
                 <span>Rich Text Editor</span>
-                <div class="mode-tabs">
-                    <button class="tab active" onclick="switchEditorMode('visual')">Visual</button>
-                    <button class="tab" onclick="switchEditorMode('text')">Text</button>
-                </div>
             </div>
 
             <!-- Toolbar -->
@@ -491,9 +487,9 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             <!-- Editor -->
             <div class="editor" id="editor" contenteditable="true" 
                  placeholder="Start writing your blog post here..."
-                 oninput="updateMarkdown()" 
+                 oninput="convertToMarkdown()" 
                  onkeydown="handleKeydown(event)"
-                 onkeyup="updateToolbar()">
+                 onpaste="handlePaste(event)">
                 <p>Start writing your Astro blog post here...</p>
             </div>
 
@@ -510,8 +506,8 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             <div class="section-header">
                 <span id="outputTitle">Markdown Output</span>
                 <div class="mode-tabs">
-                    <button class="tab active" onclick="switchOutputMode('markdown')">Markdown</button>
-                    <button class="tab" onclick="switchOutputMode('preview')">Preview</button>
+                    <button class="tab active" id="markdownTab" onclick="switchOutputMode('markdown')">Markdown</button>
+                    <button class="tab" id="previewTab" onclick="switchOutputMode('preview')">Preview</button>
                 </div>
             </div>
 
@@ -530,74 +526,48 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
     <script>
         let currentOutputMode = 'markdown';
-        let currentEditorMode = 'visual';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            updateMarkdown();
+            convertToMarkdown();
             updateStats();
             
             // Focus editor
             document.getElementById('editor').focus();
         });
 
-        // Switch editor mode (Visual/Text)
-        function switchEditorMode(mode) {
-            const editor = document.getElementById('editor');
-            const tabs = document.querySelectorAll('.editor-section .tab');
-            
-            tabs.forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            if (mode === 'text') {
-                // Switch to text mode - show HTML
-                const html = editor.innerHTML;
-                editor.style.fontFamily = 'Monaco, Menlo, monospace';
-                editor.style.fontSize = '14px';
-                editor.style.whiteSpace = 'pre-wrap';
-                editor.textContent = html;
-            } else {
-                // Switch to visual mode
-                const text = editor.textContent;
-                editor.style.fontFamily = '';
-                editor.style.fontSize = '';
-                editor.style.whiteSpace = '';
-                editor.innerHTML = text;
-            }
-            
-            currentEditorMode = mode;
-            updateMarkdown();
-        }
-
         // Switch output mode (Markdown/Preview)
         function switchOutputMode(mode) {
             const markdownOutput = document.getElementById('markdownOutput');
             const previewOutput = document.getElementById('previewOutput');
             const outputTitle = document.getElementById('outputTitle');
-            const tabs = document.querySelectorAll('.output-section .tab');
+            const markdownTab = document.getElementById('markdownTab');
+            const previewTab = document.getElementById('previewTab');
             
-            tabs.forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
+            // Update tabs
+            markdownTab.classList.remove('active');
+            previewTab.classList.remove('active');
             
             if (mode === 'preview') {
                 markdownOutput.classList.add('hidden');
                 previewOutput.classList.remove('hidden');
                 outputTitle.textContent = 'Preview';
+                previewTab.classList.add('active');
             } else {
                 markdownOutput.classList.remove('hidden');
                 previewOutput.classList.add('hidden');
                 outputTitle.textContent = 'Markdown Output';
+                markdownTab.classList.add('active');
             }
             
             currentOutputMode = mode;
-            updateMarkdown();
+            convertToMarkdown();
         }
 
         // Format text
         function format(command, value = null) {
             document.execCommand(command, false, value);
-            updateMarkdown();
-            updateToolbar();
+            convertToMarkdown();
         }
 
         // Format block (headings)
@@ -630,10 +600,12 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
         // Insert inline code
         function insertCode() {
             const selection = window.getSelection();
-            if (selection.toString()) {
-                format('insertHTML', `<code>${selection.toString()}</code>`);
+            const selectedText = selection.toString();
+            
+            if (selectedText) {
+                format('insertHTML', `<code>${selectedText}</code>`);
             } else {
-                format('insertHTML', '<code>code</code>');
+                format('insertHTML', '<code>your code here</code>');
             }
         }
 
@@ -670,119 +642,125 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
                 }
             }
             
-            // Auto-update after keydown
+            // Update after a short delay
             setTimeout(() => {
-                updateMarkdown();
+                convertToMarkdown();
                 updateStats();
             }, 10);
         }
 
-        // Update toolbar state
-        function updateToolbar() {
-            const commands = ['bold', 'italic', 'underline', 'strikeThrough'];
-            const buttons = document.querySelectorAll('.toolbar-btn');
-            
-            buttons.forEach(button => {
-                button.classList.remove('active');
-            });
-            
-            commands.forEach((command, index) => {
-                if (document.queryCommandState(command)) {
-                    buttons[index + 1]?.classList.add('active'); // +1 to skip format select
-                }
-            });
+        // Handle paste
+        function handlePaste(event) {
+            setTimeout(() => {
+                convertToMarkdown();
+                updateStats();
+            }, 10);
         }
 
-        // Convert HTML to Markdown
+        // Simple and reliable HTML to Markdown conversion
+        function convertToMarkdown() {
+            const editor = document.getElementById('editor');
+            const markdownOutput = document.getElementById('markdownOutput');
+            const previewOutput = document.getElementById('previewOutput');
+            
+            let html = editor.innerHTML.trim();
+            
+            // Check if empty or just placeholder
+            if (!html || html === '<p>Start writing your Astro blog post here...</p>' || html === '<br>') {
+                markdownOutput.textContent = 'Start writing to see your Astro markdown...';
+                previewOutput.innerHTML = '<p>Start writing to see preview...</p>';
+                return;
+            }
+            
+            // Convert HTML to markdown
+            let markdown = htmlToMarkdown(html);
+            
+            // Update outputs
+            markdownOutput.textContent = markdown;
+            
+            if (currentOutputMode === 'preview') {
+                previewOutput.innerHTML = markdownToHtml(markdown);
+            }
+            
+            // Update stats
+            updateStats();
+        }
+
+        // Robust HTML to Markdown converter
         function htmlToMarkdown(html) {
-            // Create a temporary element
-            const temp = document.createElement('div');
-            temp.innerHTML = html;
+            // Replace common HTML elements with markdown
+            let markdown = html;
             
-            let markdown = '';
+            // Headers
+            markdown = markdown.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n');
+            markdown = markdown.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n');
+            markdown = markdown.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n');
+            markdown = markdown.replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n\n');
+            markdown = markdown.replace(/<h5[^>]*>(.*?)<\/h5>/gi, '##### $1\n\n');
+            markdown = markdown.replace(/<h6[^>]*>(.*?)<\/h6>/gi, '###### $1\n\n');
             
-            function processNode(node) {
-                if (node.nodeType === Node.TEXT_NODE) {
-                    return node.textContent;
-                }
-                
-                if (node.nodeType === Node.ELEMENT_NODE) {
-                    const tagName = node.tagName.toLowerCase();
-                    const textContent = Array.from(node.childNodes).map(processNode).join('');
-                    
-                    switch (tagName) {
-                        case 'h1': return `# ${textContent}\n\n`;
-                        case 'h2': return `## ${textContent}\n\n`;
-                        case 'h3': return `### ${textContent}\n\n`;
-                        case 'h4': return `#### ${textContent}\n\n`;
-                        case 'h5': return `##### ${textContent}\n\n`;
-                        case 'h6': return `###### ${textContent}\n\n`;
-                        case 'p': return textContent ? `${textContent}\n\n` : '';
-                        case 'br': return '\n';
-                        case 'strong': 
-                        case 'b': return `**${textContent}**`;
-                        case 'em': 
-                        case 'i': return `*${textContent}*`;
-                        case 'u': return `<u>${textContent}</u>`;
-                        case 's':
-                        case 'strike': return `~~${textContent}~~`;
-                        case 'code': return `\`${textContent}\``;
-                        case 'pre': return `\`\`\`\n${textContent}\n\`\`\`\n\n`;
-                        case 'blockquote': return `> ${textContent}\n\n`;
-                        case 'a': 
-                            const href = node.getAttribute('href') || '#';
-                            return `[${textContent}](${href})`;
-                        case 'ul':
-                            return processListItems(node, false);
-                        case 'ol':
-                            return processListItems(node, true);
-                        case 'li':
-                            return textContent; // Handled by parent ul/ol
-                        case 'div':
-                            return textContent + '\n\n';
-                        default:
-                            return textContent;
-                    }
-                }
-                
-                return '';
-            }
+            // Bold and italic
+            markdown = markdown.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**');
+            markdown = markdown.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**');
+            markdown = markdown.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*');
+            markdown = markdown.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*');
             
-            function processListItems(listNode, isOrdered) {
-                let result = '';
-                const items = listNode.querySelectorAll('li');
-                
-                items.forEach((item, index) => {
-                    const content = Array.from(item.childNodes).map(processNode).join('').trim();
-                    if (content) {
-                        if (isOrdered) {
-                            result += `${index + 1}. ${content}\n`;
-                        } else {
-                            result += `- ${content}\n`;
-                        }
-                    }
-                });
-                
-                return result + '\n';
-            }
+            // Underline and strikethrough
+            markdown = markdown.replace(/<u[^>]*>(.*?)<\/u>/gi, '<u>$1</u>');
+            markdown = markdown.replace(/<s[^>]*>(.*?)<\/s>/gi, '~~$1~~');
+            markdown = markdown.replace(/<strike[^>]*>(.*?)<\/strike>/gi, '~~$1~~');
             
-            Array.from(temp.childNodes).forEach(node => {
-                markdown += processNode(node);
+            // Code
+            markdown = markdown.replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`');
+            markdown = markdown.replace(/<pre[^>]*><code[^>]*>(.*?)<\/code><\/pre>/gi, '```\n$1\n```\n\n');
+            markdown = markdown.replace(/<pre[^>]*>(.*?)<\/pre>/gi, '```\n$1\n```\n\n');
+            
+            // Links
+            markdown = markdown.replace(/<a[^>]*href=['"](.*?)['"][^>]*>(.*?)<\/a>/gi, '[$2]($1)');
+            
+            // Images
+            markdown = markdown.replace(/<img[^>]*src=['"](.*?)['"][^>]*alt=['"](.*?)['"][^>]*>/gi, '![$2]($1)');
+            markdown = markdown.replace(/<img[^>]*alt=['"](.*?)['"][^>]*src=['"](.*?)['"][^>]*>/gi, '![$1]($2)');
+            
+            // Blockquotes
+            markdown = markdown.replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gi, (match, content) => {
+                const lines = content.split('\n');
+                return lines.map(line => line.trim() ? `> ${line.trim()}` : '>').join('\n') + '\n\n';
             });
             
-            // Clean up markdown
-            return markdown
-                .replace(/\n{3,}/g, '\n\n')
-                .replace(/^\n+/, '')
-                .replace(/\n+$/, '\n')
-                .trim();
+            // Lists
+            markdown = markdown.replace(/<ul[^>]*>(.*?)<\/ul>/gi, (match, content) => {
+                return content.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n') + '\n';
+            });
+            
+            markdown = markdown.replace(/<ol[^>]*>(.*?)<\/ol>/gi, (match, content) => {
+                let counter = 1;
+                return content.replace(/<li[^>]*>(.*?)<\/li>/gi, () => {
+                    return `${counter++}. ${RegExp.$1}\n`;
+                }) + '\n';
+            });
+            
+            // Paragraphs
+            markdown = markdown.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n');
+            
+            // Line breaks
+            markdown = markdown.replace(/<br[^>]*>/gi, '\n');
+            
+            // Remove remaining HTML tags
+            markdown = markdown.replace(/<[^>]*>/g, '');
+            
+            // Clean up extra whitespace
+            markdown = markdown.replace(/\n{3,}/g, '\n\n');
+            markdown = markdown.replace(/^\s+|\s+$/g, '');
+            
+            return markdown || 'Start writing to see your Astro markdown...';
         }
 
         // Convert markdown to HTML for preview
         function markdownToHtml(markdown) {
             let html = markdown;
             
-            // Code blocks first
+            // Code blocks (process first)
             html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
             
             // Headers
@@ -798,7 +776,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
             html = html.replace(/~~(.*?)~~/g, '<s>$1</s>');
             
-            // Inline code
+            // Code
             html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
             
             // Links
@@ -811,51 +789,20 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             html = html.replace(/^\d+\. (.+)/gm, '<li>$1</li>');
             html = html.replace(/^- (.+)/gm, '<li>$1</li>');
             
-            // Wrap list items
-            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-            
             // Paragraphs
-            const paragraphs = html.split(/\n\s*\n/);
-            html = paragraphs.map(p => {
-                p = p.trim();
-                if (!p) return '';
-                
-                if (p.startsWith('<h') || p.startsWith('<ul>') || p.startsWith('<ol>') || 
-                    p.startsWith('<blockquote>') || p.startsWith('<pre>')) {
-                    return p;
-                }
-                
-                return `<p>${p}</p>`;
-            }).join('\n\n');
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = '<p>' + html + '</p>';
+            html = html.replace(/<p><\/p>/g, '');
+            html = html.replace(/<p>(<h[1-6]>)/g, '$1');
+            html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1');
+            html = html.replace(/<p>(<blockquote>)/g, '$1');
+            html = html.replace(/(<\/blockquote>)<\/p>/g, '$1');
+            html = html.replace(/<p>(<li>)/g, '<ul>$1');
+            html = html.replace(/(<\/li>)<\/p>/g, '$1</ul>');
+            html = html.replace(/<p>(<pre>)/g, '$1');
+            html = html.replace(/(<\/pre>)<\/p>/g, '$1');
             
             return html;
-        }
-
-        // Update markdown output
-        function updateMarkdown() {
-            const editor = document.getElementById('editor');
-            const markdownOutput = document.getElementById('markdownOutput');
-            const previewOutput = document.getElementById('previewOutput');
-            
-            let content = '';
-            if (currentEditorMode === 'visual') {
-                content = editor.innerHTML;
-            } else {
-                content = editor.textContent;
-            }
-            
-            if (!content || content === '<p>Start writing your Astro blog post here...</p>') {
-                markdownOutput.textContent = 'Start writing to see your Astro markdown...';
-                previewOutput.innerHTML = '<p>Start writing to see preview...</p>';
-                return;
-            }
-            
-            const markdown = htmlToMarkdown(content);
-            markdownOutput.textContent = markdown;
-            
-            if (currentOutputMode === 'preview') {
-                previewOutput.innerHTML = markdownToHtml(markdown);
-            }
         }
 
         // Update stats
@@ -865,11 +812,11 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             
             const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
             const charCount = text.length;
-            const paraCount = (text.match(/\n\s*\n/g) || []).length + 1;
+            const paraCount = Math.max(1, (text.split(/\n\s*\n/).length));
             
             document.getElementById('wordCount').textContent = wordCount;
             document.getElementById('charCount').textContent = charCount;
-            document.getElementById('paraCount').textContent = Math.max(1, paraCount);
+            document.getElementById('paraCount').textContent = paraCount;
         }
 
         // Copy markdown
@@ -895,9 +842,11 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
         // Clear editor
         function clearEditor() {
             if (confirm('Clear all content?')) {
-                document.getElementById('editor').innerHTML = '<p>Start writing your Astro blog post here...</p>';
-                updateMarkdown();
+                const editor = document.getElementById('editor');
+                editor.innerHTML = '<p>Start writing your Astro blog post here...</p>';
+                convertToMarkdown();
                 updateStats();
+                editor.focus();
             }
         }
 
@@ -905,10 +854,10 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
         function loadDemo() {
             const demoContent = `
                 <h1>Welcome to My Astro Blog</h1>
-                <p>This is a <strong>comprehensive example</strong> of how to create <em>amazing content</em> for your Astro website using our custom editor.</p>
+                <p>This is a <strong>comprehensive example</strong> of how to create <em>amazing content</em> for your Astro website.</p>
                 
                 <h2>Why Choose Astro?</h2>
-                <p>Astro is the perfect framework for content-driven websites. Here's why developers love it:</p>
+                <p>Astro is perfect for content-driven websites:</p>
                 
                 <ul>
                     <li><strong>Lightning fast</strong> - Ships zero JavaScript by default</li>
@@ -918,38 +867,33 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
                 </ul>
                 
                 <h3>Getting Started</h3>
-                <p>Here's a simple Astro component example:</p>
+                <p>Here's a simple Astro component:</p>
                 
                 <pre><code>---
-// Component script
 const title = "Hello Astro!";
-const items = ["Fast", "Flexible", "Fun"];
 ---
 &lt;h1&gt;{title}&lt;/h1&gt;
-&lt;ul&gt;
-  {items.map(item => &lt;li&gt;{item}&lt;/li&gt;)}
-&lt;/ul&gt;</code></pre>
+&lt;p&gt;Welcome to my site!&lt;/p&gt;</code></pre>
                 
                 <blockquote>
-                    "Astro lets you use your favorite tools and frameworks to build content-focused websites that load instantly."
+                    "Astro lets you build fast websites with your favorite tools."
                 </blockquote>
                 
                 <h4>Advanced Features</h4>
-                <p>Some advanced features you'll love:</p>
+                <p>Features you'll love:</p>
                 
                 <ol>
                     <li>Island architecture for optimal performance</li>
                     <li>Built-in TypeScript support</li>
                     <li>Automatic image optimization</li>
-                    <li>RSS feed generation</li>
                     <li>SEO-friendly by default</li>
                 </ol>
                 
-                <p>Ready to start building? Check out the <a href="https://astro.build">official documentation</a> and join the amazing Astro community!</p>
+                <p>Ready to start? Check out the <a href="https://astro.build">official documentation</a>!</p>
             `;
             
             document.getElementById('editor').innerHTML = demoContent;
-            updateMarkdown();
+            convertToMarkdown();
             updateStats();
         }
     </script>
