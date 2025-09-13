@@ -9,8 +9,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astro Markdown Editor</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet">
+    <title>Astro Blog Editor</title>
     <style>
         * {
             margin: 0;
@@ -20,7 +19,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: white;
+            background-color: #f5f5f5;
             color: black;
             line-height: 1.6;
         }
@@ -30,539 +29,763 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             color: white;
             padding: 1rem 2rem;
             text-align: center;
-            border-bottom: 3px solid black;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .header p {
-            margin-top: 0.5rem;
-            opacity: 0.9;
+            font-size: 1.8rem;
+            font-weight: 600;
         }
 
         .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            height: calc(100vh - 120px);
-            gap: 0;
+            gap: 2rem;
+            height: calc(100vh - 140px);
         }
 
-        .editor-panel, .output-panel {
-            border-right: 2px solid black;
+        .editor-section, .output-section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-        }
-
-        .output-panel {
-            border-right: none;
-            border-left: 2px solid black;
-        }
-
-        .panel-header {
-            background-color: black;
-            color: white;
-            padding: 1rem;
-            font-weight: 600;
-            font-size: 1.1rem;
-            border-bottom: 2px solid #2337FF;
-        }
-
-        .editor-content {
-            flex: 1;
             overflow: hidden;
         }
 
-        #editor {
-            height: 100%;
-            border: none;
-        }
-
-        .ql-toolbar {
-            border: none !important;
-            border-bottom: 2px solid black !important;
-            background-color: #f8f9fa;
-        }
-
-        .ql-container {
-            border: none !important;
-            font-size: 16px;
-            height: calc(100% - 42px);
-        }
-
-        .ql-editor {
-            padding: 1.5rem;
-            line-height: 1.6;
-        }
-
-        .ql-toolbar .ql-stroke {
-            stroke: black;
-        }
-
-        .ql-toolbar .ql-fill {
-            fill: black;
-        }
-
-        .ql-toolbar button:hover .ql-stroke {
-            stroke: #2337FF;
-        }
-
-        .ql-toolbar button:hover .ql-fill {
-            fill: #2337FF;
-        }
-
-        .ql-toolbar button.ql-active .ql-stroke {
-            stroke: #2337FF;
-        }
-
-        .ql-toolbar button.ql-active .ql-fill {
-            fill: #2337FF;
-        }
-
-        .output-content {
-            flex: 1;
-            padding: 1.5rem;
-            background-color: #f8f9fa;
-            overflow-y: auto;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        .toolbar-actions {
-            padding: 1rem;
-            background-color: black;
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            border-top: 2px solid #2337FF;
-        }
-
-        .btn {
-            background-color: #2337FF;
-            color: white;
-            border: 2px solid black;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
+        .section-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 1.5rem;
             font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn:hover {
-            background-color: white;
-            color: #2337FF;
-            border-color: #2337FF;
-        }
-
-        .stats {
+            color: #495057;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .mode-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tab {
             padding: 0.5rem 1rem;
-            background-color: #f8f9fa;
-            border-top: 1px solid black;
+            background: #e9ecef;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
             font-size: 0.875rem;
-            color: #666;
+            transition: all 0.2s;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-                grid-template-rows: 1fr 1fr;
-            }
-            
-            .editor-panel, .output-panel {
-                border-right: none;
-                border-left: none;
-            }
-            
-            .output-panel {
-                border-top: 2px solid black;
-            }
+        .tab.active {
+            background: #2337FF;
+            color: white;
         }
 
-        .preview-mode {
-            background-color: white;
-            color: black;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        .tab:hover:not(.active) {
+            background: #dee2e6;
+        }
+
+        /* WordPress-style Toolbar */
+        .toolbar {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            align-items: center;
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: 0.25rem;
+            margin-right: 0.75rem;
+            padding-right: 0.75rem;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .toolbar-group:last-child {
+            border-right: none;
+            margin-right: 0;
+        }
+
+        .toolbar-btn {
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+            padding: 0.4rem 0.6rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.15s;
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toolbar-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .toolbar-btn.active {
+            background: #2337FF;
+            color: white;
+            border-color: #2337FF;
+        }
+
+        .toolbar-select {
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            min-width: 100px;
+        }
+
+        .toolbar-select:focus {
+            outline: none;
+            border-color: #2337FF;
+            box-shadow: 0 0 0 2px rgba(35, 55, 255, 0.2);
+        }
+
+        /* Editor */
+        .editor {
+            flex: 1;
+            padding: 1.5rem;
+            font-size: 16px;
             line-height: 1.6;
+            border: none;
+            outline: none;
+            overflow-y: auto;
+            min-height: 300px;
+            background: white;
         }
 
-        .preview-mode h1, .preview-mode h2, .preview-mode h3,
-        .preview-mode h4, .preview-mode h5, .preview-mode h6 {
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
+        .editor:focus {
+            outline: none;
         }
 
-        .preview-mode h1 { font-size: 2rem; border-bottom: 2px solid #2337FF; padding-bottom: 0.5rem; }
-        .preview-mode h2 { font-size: 1.75rem; color: #2337FF; }
-        .preview-mode h3 { font-size: 1.5rem; }
-        .preview-mode h4 { font-size: 1.25rem; }
-        .preview-mode h5 { font-size: 1.1rem; }
-        .preview-mode h6 { font-size: 1rem; }
+        .editor h1, .editor h2, .editor h3, .editor h4, .editor h5, .editor h6 {
+            margin: 1.5rem 0 0.5rem 0;
+            font-weight: 600;
+        }
 
-        .preview-mode p {
+        .editor h1 { font-size: 2rem; }
+        .editor h2 { font-size: 1.75rem; }
+        .editor h3 { font-size: 1.5rem; }
+        .editor h4 { font-size: 1.25rem; }
+        .editor h5 { font-size: 1.1rem; }
+        .editor h6 { font-size: 1rem; }
+
+        .editor p {
             margin: 1rem 0;
         }
 
-        .preview-mode blockquote {
+        .editor blockquote {
             border-left: 4px solid #2337FF;
             margin: 1rem 0;
             padding-left: 1rem;
-            color: #666;
-            background-color: #f8f9fa;
+            color: #6c757d;
+            background: #f8f9fa;
             padding: 1rem;
         }
 
-        .preview-mode code {
-            background-color: #f8f9fa;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            border: 1px solid #ddd;
-        }
-
-        .preview-mode pre {
-            background-color: #f8f9fa;
-            padding: 1rem;
-            border-radius: 4px;
-            overflow-x: auto;
-            border: 1px solid #ddd;
-            margin: 1rem 0;
-        }
-
-        .preview-mode pre code {
-            background: none;
-            padding: 0;
-            border: none;
-        }
-
-        .preview-mode ul, .preview-mode ol {
+        .editor ul, .editor ol {
             margin: 1rem 0;
             padding-left: 2rem;
         }
 
-        .preview-mode li {
+        .editor li {
             margin: 0.5rem 0;
         }
 
-        .preview-mode table {
-            border-collapse: collapse;
-            width: 100%;
+        .editor code {
+            background: #f8f9fa;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+        }
+
+        .editor pre {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
             margin: 1rem 0;
+            border: 1px solid #e9ecef;
         }
 
-        .preview-mode th, .preview-mode td {
-            border: 1px solid #ddd;
-            padding: 0.5rem;
-            text-align: left;
+        .editor pre code {
+            background: none;
+            padding: 0;
         }
 
-        .preview-mode th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-        }
-
-        .preview-mode a {
+        .editor a {
             color: #2337FF;
             text-decoration: underline;
         }
 
-        .preview-mode strong {
-            font-weight: 700;
+        /* Output */
+        .output {
+            flex: 1;
+            padding: 1.5rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            background: #f8f9fa;
+            border: none;
+            outline: none;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
-        .preview-mode em {
-            font-style: italic;
+        /* Stats */
+        .stats {
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            color: #6c757d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .preview-mode del {
-            text-decoration: line-through;
+        .actions {
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 1rem 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
         }
 
-        .demo-btn {
-            position: fixed;
-            top: 50%;
-            right: 1rem;
-            transform: translateY(-50%);
-            background-color: #2337FF;
+        .btn {
+            background: #2337FF;
             color: white;
-            border: 2px solid black;
-            padding: 0.5rem;
+            border: none;
             border-radius: 4px;
+            padding: 0.5rem 1rem;
             cursor: pointer;
-            z-index: 1000;
-            writing-mode: vertical-rl;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #1e2ecc;
+        }
+
+        .btn.secondary {
+            background: #6c757d;
+        }
+
+        .btn.secondary:hover {
+            background: #5a6268;
+        }
+
+        /* Preview Mode */
+        .preview {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            background: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+        }
+
+        .preview h1, .preview h2, .preview h3, .preview h4, .preview h5, .preview h6 {
+            margin: 1.5rem 0 0.5rem 0;
             font-weight: 600;
         }
 
-        .demo-btn:hover {
-            background-color: black;
+        .preview h1 { font-size: 2rem; color: #2337FF; }
+        .preview h2 { font-size: 1.75rem; color: #2337FF; }
+        .preview h3 { font-size: 1.5rem; }
+        .preview h4 { font-size: 1.25rem; }
+        .preview h5 { font-size: 1.1rem; }
+        .preview h6 { font-size: 1rem; }
+
+        .preview p {
+            margin: 1rem 0;
+        }
+
+        .preview blockquote {
+            border-left: 4px solid #2337FF;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .preview ul, .preview ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+
+        .preview li {
+            margin: 0.5rem 0;
+        }
+
+        .preview code {
+            background: #f8f9fa;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+        }
+
+        .preview pre {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            border: 1px solid #e9ecef;
+        }
+
+        .preview pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .preview a {
+            color: #2337FF;
+            text-decoration: underline;
+        }
+
+        .preview strong {
+            font-weight: 600;
+        }
+
+        .preview em {
+            font-style: italic;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .toolbar {
+                padding: 0.5rem;
+            }
+            
+            .toolbar-group {
+                margin-right: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            .container {
+                margin: 1rem auto;
+                padding: 0 0.5rem;
+            }
+        }
+
+        /* Utility classes */
+        .hidden {
+            display: none;
+        }
+
+        /* Animation for copy feedback */
+        .copy-success {
+            background: #28a745 !important;
         }
     </style>
 </head>
 <body>
     <header class="header">
-        <h1>Astro Markdown Editor</h1>
-        <p>Create rich content and convert it to Astro-compatible markdown instantly</p>
+        <h1>Astro Blog Editor</h1>
     </header>
 
-    <button class="demo-btn" onclick="insertSampleContent()">Load Demo</button>
-
     <div class="container">
-        <div class="editor-panel">
-            <div class="panel-header">Rich Text Editor</div>
-            <div class="editor-content">
-                <div id="editor"></div>
+        <!-- Editor Section -->
+        <div class="editor-section">
+            <div class="section-header">
+                <span>Rich Text Editor</span>
+                <div class="mode-tabs">
+                    <button class="tab active" onclick="switchEditorMode('visual')">Visual</button>
+                    <button class="tab" onclick="switchEditorMode('text')">Text</button>
+                </div>
             </div>
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <select class="toolbar-select" id="formatSelect" onchange="formatBlock()">
+                        <option value="">Paragraph</option>
+                        <option value="h1">Heading 1</option>
+                        <option value="h2">Heading 2</option>
+                        <option value="h3">Heading 3</option>
+                        <option value="h4">Heading 4</option>
+                        <option value="h5">Heading 5</option>
+                        <option value="h6">Heading 6</option>
+                    </select>
+                </div>
+
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="format('bold')" title="Bold (Ctrl+B)">
+                        <strong>B</strong>
+                    </button>
+                    <button class="toolbar-btn" onclick="format('italic')" title="Italic (Ctrl+I)">
+                        <em>I</em>
+                    </button>
+                    <button class="toolbar-btn" onclick="format('underline')" title="Underline (Ctrl+U)">
+                        <u>U</u>
+                    </button>
+                    <button class="toolbar-btn" onclick="format('strikeThrough')" title="Strikethrough">
+                        <s>S</s>
+                    </button>
+                </div>
+
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="format('insertUnorderedList')" title="Bullet List">
+                        • List
+                    </button>
+                    <button class="toolbar-btn" onclick="format('insertOrderedList')" title="Numbered List">
+                        1. List
+                    </button>
+                    <button class="toolbar-btn" onclick="insertBlockquote()" title="Blockquote">
+                        Quote
+                    </button>
+                </div>
+
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="insertLink()" title="Insert Link">
+                        Link
+                    </button>
+                    <button class="toolbar-btn" onclick="insertCode()" title="Inline Code">
+                        Code
+                    </button>
+                    <button class="toolbar-btn" onclick="insertCodeBlock()" title="Code Block">
+                        { }
+                    </button>
+                </div>
+
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="format('undo')" title="Undo (Ctrl+Z)">
+                        ↶
+                    </button>
+                    <button class="toolbar-btn" onclick="format('redo')" title="Redo (Ctrl+Y)">
+                        ↷
+                    </button>
+                </div>
+            </div>
+
+            <!-- Editor -->
+            <div class="editor" id="editor" contenteditable="true" 
+                 placeholder="Start writing your blog post here..."
+                 oninput="updateMarkdown()" 
+                 onkeydown="handleKeydown(event)"
+                 onkeyup="updateToolbar()">
+                <p>Start writing your Astro blog post here...</p>
+            </div>
+
+            <!-- Stats -->
             <div class="stats">
-                <span>Words: <span id="word-count">0</span></span>
-                <span>Characters: <span id="char-count">0</span></span>
+                <span>Words: <span id="wordCount">0</span></span>
+                <span>Characters: <span id="charCount">0</span></span>
+                <span>Paragraphs: <span id="paraCount">0</span></span>
             </div>
         </div>
 
-        <div class="output-panel">
-            <div class="panel-header">Markdown Output</div>
-            <div class="output-content" id="markdown-output">Start typing in the editor to see Astro markdown output...</div>
-            <div class="toolbar-actions">
+        <!-- Output Section -->
+        <div class="output-section">
+            <div class="section-header">
+                <span id="outputTitle">Markdown Output</span>
+                <div class="mode-tabs">
+                    <button class="tab active" onclick="switchOutputMode('markdown')">Markdown</button>
+                    <button class="tab" onclick="switchOutputMode('preview')">Preview</button>
+                </div>
+            </div>
+
+            <!-- Output -->
+            <div class="output" id="markdownOutput">Start writing to see your Astro markdown...</div>
+            <div class="preview hidden" id="previewOutput">Start writing to see preview...</div>
+
+            <!-- Actions -->
+            <div class="actions">
                 <button class="btn" onclick="copyMarkdown()">Copy Markdown</button>
-                <button class="btn" onclick="togglePreview()">Toggle Preview</button>
-                <button class="btn" onclick="clearEditor()">Clear All</button>
+                <button class="btn secondary" onclick="clearEditor()">Clear</button>
+                <button class="btn secondary" onclick="loadDemo()">Load Demo</button>
             </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
     <script>
-        let quill;
-        let isPreviewMode = false;
+        let currentOutputMode = 'markdown';
+        let currentEditorMode = 'visual';
 
-        // Initialize Quill editor
-        function initializeEditor() {
-            const toolbarOptions = [
-                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                ['bold', 'italic', 'underline', 'strike'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                [{ 'indent': '-1'}, { 'indent': '+1' }],
-                ['blockquote', 'code-block'],
-                ['link', 'image'],
-                [{ 'align': [] }],
-                ['clean']
-            ];
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMarkdown();
+            updateStats();
+            
+            // Focus editor
+            document.getElementById('editor').focus();
+        });
 
-            quill = new Quill('#editor', {
-                theme: 'snow',
-                modules: {
-                    toolbar: toolbarOptions
-                },
-                placeholder: 'Start writing your Astro blog content here...\n\nTip: Use the toolbar to format your text, and it will be converted to Astro-compatible markdown automatically!'
-            });
-
-            // Listen for content changes
-            quill.on('text-change', function() {
-                convertToMarkdown();
-                updateStats();
-            });
-
-            // Initial conversion
-            convertToMarkdown();
+        // Switch editor mode (Visual/Text)
+        function switchEditorMode(mode) {
+            const editor = document.getElementById('editor');
+            const tabs = document.querySelectorAll('.editor-section .tab');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (mode === 'text') {
+                // Switch to text mode - show HTML
+                const html = editor.innerHTML;
+                editor.style.fontFamily = 'Monaco, Menlo, monospace';
+                editor.style.fontSize = '14px';
+                editor.style.whiteSpace = 'pre-wrap';
+                editor.textContent = html;
+            } else {
+                // Switch to visual mode
+                const text = editor.textContent;
+                editor.style.fontFamily = '';
+                editor.style.fontSize = '';
+                editor.style.whiteSpace = '';
+                editor.innerHTML = text;
+            }
+            
+            currentEditorMode = mode;
+            updateMarkdown();
         }
 
-        // Convert Quill HTML to proper Astro Markdown
-        function convertToMarkdown() {
-            const editorHtml = quill.root.innerHTML;
-            const text = quill.getText().trim();
+        // Switch output mode (Markdown/Preview)
+        function switchOutputMode(mode) {
+            const markdownOutput = document.getElementById('markdownOutput');
+            const previewOutput = document.getElementById('previewOutput');
+            const outputTitle = document.getElementById('outputTitle');
+            const tabs = document.querySelectorAll('.output-section .tab');
             
-            if (!text) {
-                displayOutput('Start typing in the editor to see Astro markdown output...');
-                return;
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (mode === 'preview') {
+                markdownOutput.classList.add('hidden');
+                previewOutput.classList.remove('hidden');
+                outputTitle.textContent = 'Preview';
+            } else {
+                markdownOutput.classList.remove('hidden');
+                previewOutput.classList.add('hidden');
+                outputTitle.textContent = 'Markdown Output';
             }
+            
+            currentOutputMode = mode;
+            updateMarkdown();
+        }
 
-            // Create a temporary div to process the HTML
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = editorHtml;
+        // Format text
+        function format(command, value = null) {
+            document.execCommand(command, false, value);
+            updateMarkdown();
+            updateToolbar();
+        }
 
+        // Format block (headings)
+        function formatBlock() {
+            const select = document.getElementById('formatSelect');
+            const value = select.value;
+            
+            if (value) {
+                format('formatBlock', value);
+            } else {
+                format('formatBlock', 'p');
+            }
+            
+            select.value = '';
+        }
+
+        // Insert blockquote
+        function insertBlockquote() {
+            format('formatBlock', 'blockquote');
+        }
+
+        // Insert link
+        function insertLink() {
+            const url = prompt('Enter URL:');
+            if (url) {
+                format('createLink', url);
+            }
+        }
+
+        // Insert inline code
+        function insertCode() {
+            const selection = window.getSelection();
+            if (selection.toString()) {
+                format('insertHTML', `<code>${selection.toString()}</code>`);
+            } else {
+                format('insertHTML', '<code>code</code>');
+            }
+        }
+
+        // Insert code block
+        function insertCodeBlock() {
+            const code = prompt('Enter code:') || 'Your code here';
+            format('insertHTML', `<pre><code>${code}</code></pre>`);
+        }
+
+        // Handle keyboard shortcuts
+        function handleKeydown(event) {
+            if (event.ctrlKey || event.metaKey) {
+                switch (event.key) {
+                    case 'b':
+                        event.preventDefault();
+                        format('bold');
+                        break;
+                    case 'i':
+                        event.preventDefault();
+                        format('italic');
+                        break;
+                    case 'u':
+                        event.preventDefault();
+                        format('underline');
+                        break;
+                    case 'z':
+                        event.preventDefault();
+                        format('undo');
+                        break;
+                    case 'y':
+                        event.preventDefault();
+                        format('redo');
+                        break;
+                }
+            }
+            
+            // Auto-update after keydown
+            setTimeout(() => {
+                updateMarkdown();
+                updateStats();
+            }, 10);
+        }
+
+        // Update toolbar state
+        function updateToolbar() {
+            const commands = ['bold', 'italic', 'underline', 'strikeThrough'];
+            const buttons = document.querySelectorAll('.toolbar-btn');
+            
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            commands.forEach((command, index) => {
+                if (document.queryCommandState(command)) {
+                    buttons[index + 1]?.classList.add('active'); // +1 to skip format select
+                }
+            });
+        }
+
+        // Convert HTML to Markdown
+        function htmlToMarkdown(html) {
+            // Create a temporary element
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            
             let markdown = '';
             
-            // Process each child element
-            Array.from(tempDiv.children).forEach(element => {
-                markdown += processElement(element) + '\n';
-            });
-
-            // Clean up markdown
-            markdown = markdown
-                .replace(/\n{3,}/g, '\n\n') // Remove excessive line breaks
-                .replace(/^\n+/, '') // Remove leading newlines
-                .trim(); // Clean up
-
-            displayOutput(markdown);
-        }
-
-        // Process individual HTML elements to markdown
-        function processElement(element) {
-            const tagName = element.tagName.toLowerCase();
-            let content = '';
-
-            switch (tagName) {
-                case 'h1':
-                    return `# ${getTextContent(element)}`;
-                case 'h2':
-                    return `## ${getTextContent(element)}`;
-                case 'h3':
-                    return `### ${getTextContent(element)}`;
-                case 'h4':
-                    return `#### ${getTextContent(element)}`;
-                case 'h5':
-                    return `##### ${getTextContent(element)}`;
-                case 'h6':
-                    return `###### ${getTextContent(element)}`;
-                
-                case 'p':
-                    content = processInlineElements(element);
-                    return content || '';
-                
-                case 'blockquote':
-                    content = processInlineElements(element);
-                    return content.split('\n').map(line => `> ${line}`).join('\n');
-                
-                case 'pre':
-                    const codeContent = element.textContent;
-                    const language = element.getAttribute('data-language') || '';
-                    return `\`\`\`${language}\n${codeContent}\n\`\`\``;
-                
-                case 'ul':
-                    return processListItems(element, false);
-                
-                case 'ol':
-                    return processListItems(element, true);
-                
-                default:
-                    return processInlineElements(element);
-            }
-        }
-
-        // Process inline elements (bold, italic, links, etc.)
-        function processInlineElements(element) {
-            let result = '';
-            
-            for (let node of element.childNodes) {
+            function processNode(node) {
                 if (node.nodeType === Node.TEXT_NODE) {
-                    result += node.textContent;
-                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    return node.textContent;
+                }
+                
+                if (node.nodeType === Node.ELEMENT_NODE) {
                     const tagName = node.tagName.toLowerCase();
-                    const textContent = node.textContent;
+                    const textContent = Array.from(node.childNodes).map(processNode).join('');
                     
                     switch (tagName) {
-                        case 'strong':
-                        case 'b':
-                            result += `**${textContent}**`;
-                            break;
-                        case 'em':
-                        case 'i':
-                            result += `*${textContent}*`;
-                            break;
-                        case 'u':
-                            result += `<u>${textContent}</u>`;
-                            break;
+                        case 'h1': return `# ${textContent}\n\n`;
+                        case 'h2': return `## ${textContent}\n\n`;
+                        case 'h3': return `### ${textContent}\n\n`;
+                        case 'h4': return `#### ${textContent}\n\n`;
+                        case 'h5': return `##### ${textContent}\n\n`;
+                        case 'h6': return `###### ${textContent}\n\n`;
+                        case 'p': return textContent ? `${textContent}\n\n` : '';
+                        case 'br': return '\n';
+                        case 'strong': 
+                        case 'b': return `**${textContent}**`;
+                        case 'em': 
+                        case 'i': return `*${textContent}*`;
+                        case 'u': return `<u>${textContent}</u>`;
                         case 's':
-                        case 'del':
-                            result += `~~${textContent}~~`;
-                            break;
-                        case 'code':
-                            result += `\`${textContent}\``;
-                            break;
-                        case 'a':
+                        case 'strike': return `~~${textContent}~~`;
+                        case 'code': return `\`${textContent}\``;
+                        case 'pre': return `\`\`\`\n${textContent}\n\`\`\`\n\n`;
+                        case 'blockquote': return `> ${textContent}\n\n`;
+                        case 'a': 
                             const href = node.getAttribute('href') || '#';
-                            result += `[${textContent}](${href})`;
-                            break;
-                        case 'img':
-                            const src = node.getAttribute('src') || '';
-                            const alt = node.getAttribute('alt') || '';
-                            result += `![${alt}](${src})`;
-                            break;
-                        case 'br':
-                            result += '\n';
-                            break;
+                            return `[${textContent}](${href})`;
+                        case 'ul':
+                            return processListItems(node, false);
+                        case 'ol':
+                            return processListItems(node, true);
+                        case 'li':
+                            return textContent; // Handled by parent ul/ol
+                        case 'div':
+                            return textContent + '\n\n';
                         default:
-                            result += processInlineElements(node);
+                            return textContent;
                     }
                 }
+                
+                return '';
             }
             
-            return result;
-        }
-
-        // Process list items
-        function processListItems(listElement, isOrdered = false) {
-            let result = '';
-            const items = listElement.querySelectorAll('li');
-            
-            items.forEach((item, index) => {
-                const content = processInlineElements(item);
-                const indent = getIndentLevel(item) * 2;
-                const spaces = ' '.repeat(indent);
+            function processListItems(listNode, isOrdered) {
+                let result = '';
+                const items = listNode.querySelectorAll('li');
                 
-                if (isOrdered) {
-                    result += `${spaces}${index + 1}. ${content}\n`;
-                } else {
-                    result += `${spaces}- ${content}\n`;
-                }
+                items.forEach((item, index) => {
+                    const content = Array.from(item.childNodes).map(processNode).join('').trim();
+                    if (content) {
+                        if (isOrdered) {
+                            result += `${index + 1}. ${content}\n`;
+                        } else {
+                            result += `- ${content}\n`;
+                        }
+                    }
+                });
+                
+                return result + '\n';
+            }
+            
+            Array.from(temp.childNodes).forEach(node => {
+                markdown += processNode(node);
             });
             
-            return result.trim();
+            // Clean up markdown
+            return markdown
+                .replace(/\n{3,}/g, '\n\n')
+                .replace(/^\n+/, '')
+                .replace(/\n+$/, '\n')
+                .trim();
         }
 
-        // Get indent level for nested lists
-        function getIndentLevel(element) {
-            let level = 0;
-            let parent = element.parentElement;
-            
-            while (parent && parent.tagName !== 'DIV') {
-                if (parent.tagName === 'UL' || parent.tagName === 'OL') {
-                    level++;
-                }
-                parent = parent.parentElement;
-            }
-            
-            return Math.max(0, level - 1);
-        }
-
-        // Get clean text content
-        function getTextContent(element) {
-            return processInlineElements(element);
-        }
-
-        // Display output (markdown or preview)
-        function displayOutput(markdown) {
-            const outputElement = document.getElementById('markdown-output');
-            
-            if (isPreviewMode) {
-                outputElement.innerHTML = `<div class="preview-mode">${markdownToHtml(markdown)}</div>`;
-            } else {
-                outputElement.textContent = markdown || 'Start typing in the editor to see Astro markdown output...';
-            }
-        }
-
-        // Convert markdown to HTML for preview (comprehensive implementation)
+        // Convert markdown to HTML for preview
         function markdownToHtml(markdown) {
-            if (!markdown || markdown === 'Start typing in the editor to see Astro markdown output...') {
-                return '<p>Start typing in the editor to see preview...</p>';
-            }
-
             let html = markdown;
             
-            // Code blocks (must be processed first)
-            html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-                return `<pre><code class="language-${lang || ''}">${escapeHtml(code.trim())}</code></pre>`;
-            });
+            // Code blocks first
+            html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
             
-            // Headers (must be processed before other formatting)
+            // Headers
             html = html.replace(/^###### (.*$)/gm, '<h6>$1</h6>');
             html = html.replace(/^##### (.*$)/gm, '<h5>$1</h5>');
             html = html.replace(/^#### (.*$)/gm, '<h4>$1</h4>');
@@ -570,211 +793,165 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
             html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
             html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
             
-            // Blockquotes
-            html = html.replace(/^> (.+)/gm, '<blockquote>$1</blockquote>');
-            
-            // Bold and italic (order matters)
-            html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
+            // Bold and italic
             html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            
-            // Strikethrough
-            html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
+            html = html.replace(/~~(.*?)~~/g, '<s>$1</s>');
             
             // Inline code
             html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
             
             // Links
-            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
             
-            // Images
-            html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; height: auto;">');
+            // Blockquotes
+            html = html.replace(/^> (.+)/gm, '<blockquote>$1</blockquote>');
             
             // Lists
             html = html.replace(/^\d+\. (.+)/gm, '<li>$1</li>');
             html = html.replace(/^- (.+)/gm, '<li>$1</li>');
             
-            // Wrap consecutive <li> elements in appropriate list tags
-            html = html.replace(/(<li>.*<\/li>)/s, (match) => {
-                if (markdown.includes('1. ')) {
-                    return `<ol>${match}</ol>`;
-                } else {
-                    return `<ul>${match}</ul>`;
-                }
-            });
+            // Wrap list items
+            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
             
-            // Paragraphs (split by double newlines, but preserve single newlines within)
+            // Paragraphs
             const paragraphs = html.split(/\n\s*\n/);
             html = paragraphs.map(p => {
                 p = p.trim();
                 if (!p) return '';
                 
-                // Don't wrap headers, lists, blockquotes, or code blocks in <p> tags
                 if (p.startsWith('<h') || p.startsWith('<ul>') || p.startsWith('<ol>') || 
                     p.startsWith('<blockquote>') || p.startsWith('<pre>')) {
                     return p;
                 }
                 
-                // Convert single newlines to <br> within paragraphs
-                p = p.replace(/\n/g, '<br>');
                 return `<p>${p}</p>`;
             }).join('\n\n');
             
             return html;
         }
 
-        // Escape HTML
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        // Update markdown output
+        function updateMarkdown() {
+            const editor = document.getElementById('editor');
+            const markdownOutput = document.getElementById('markdownOutput');
+            const previewOutput = document.getElementById('previewOutput');
+            
+            let content = '';
+            if (currentEditorMode === 'visual') {
+                content = editor.innerHTML;
+            } else {
+                content = editor.textContent;
+            }
+            
+            if (!content || content === '<p>Start writing your Astro blog post here...</p>') {
+                markdownOutput.textContent = 'Start writing to see your Astro markdown...';
+                previewOutput.innerHTML = '<p>Start writing to see preview...</p>';
+                return;
+            }
+            
+            const markdown = htmlToMarkdown(content);
+            markdownOutput.textContent = markdown;
+            
+            if (currentOutputMode === 'preview') {
+                previewOutput.innerHTML = markdownToHtml(markdown);
+            }
         }
 
-        // Update statistics
+        // Update stats
         function updateStats() {
-            const text = quill.getText();
+            const editor = document.getElementById('editor');
+            const text = editor.textContent || '';
+            
             const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
             const charCount = text.length;
+            const paraCount = (text.match(/\n\s*\n/g) || []).length + 1;
             
-            document.getElementById('word-count').textContent = wordCount;
-            document.getElementById('char-count').textContent = charCount;
+            document.getElementById('wordCount').textContent = wordCount;
+            document.getElementById('charCount').textContent = charCount;
+            document.getElementById('paraCount').textContent = Math.max(1, paraCount);
         }
 
-        // Copy markdown to clipboard
+        // Copy markdown
         function copyMarkdown() {
-            const outputElement = document.getElementById('markdown-output');
-            const markdownText = isPreviewMode ? 
-                convertToMarkdownForCopy() : 
-                outputElement.textContent;
+            const markdownOutput = document.getElementById('markdownOutput');
+            const text = markdownOutput.textContent;
             
-            if (markdownText && markdownText !== 'Start typing in the editor to see Astro markdown output...') {
-                navigator.clipboard.writeText(markdownText).then(() => {
-                    showCopyFeedback();
-                }).catch(() => {
-                    alert('Failed to copy to clipboard');
+            if (text && text !== 'Start writing to see your Astro markdown...') {
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = event.target;
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    btn.classList.add('copy-success');
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.classList.remove('copy-success');
+                    }, 2000);
                 });
-            } else {
-                alert('No content to copy');
             }
         }
 
-        // Get markdown for copying when in preview mode
-        function convertToMarkdownForCopy() {
-            convertToMarkdown(); // Refresh markdown
-            const outputElement = document.getElementById('markdown-output');
-            const tempMode = isPreviewMode;
-            isPreviewMode = false;
-            convertToMarkdown();
-            const markdown = outputElement.textContent;
-            isPreviewMode = tempMode;
-            convertToMarkdown(); // Restore preview
-            return markdown;
-        }
-
-        // Show copy feedback
-        function showCopyFeedback() {
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = 'Copied!';
-            btn.style.backgroundColor = '#28a745';
-            
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.style.backgroundColor = '#2337FF';
-            }, 2000);
-        }
-
-        // Toggle between markdown and preview mode
-        function togglePreview() {
-            isPreviewMode = !isPreviewMode;
-            const btn = event.target;
-            const headerElement = document.querySelector('.output-panel .panel-header');
-            
-            if (isPreviewMode) {
-                btn.textContent = 'Show Markdown';
-                headerElement.textContent = 'Preview Mode';
-            } else {
-                btn.textContent = 'Toggle Preview';
-                headerElement.textContent = 'Markdown Output';
-            }
-            
-            convertToMarkdown(); // Refresh output
-        }
-
-        // Clear editor content
+        // Clear editor
         function clearEditor() {
-            if (confirm('Are you sure you want to clear all content?')) {
-                quill.setContents([]);
-                convertToMarkdown();
+            if (confirm('Clear all content?')) {
+                document.getElementById('editor').innerHTML = '<p>Start writing your Astro blog post here...</p>';
+                updateMarkdown();
                 updateStats();
             }
         }
 
-        // Sample content for demonstration
-        function insertSampleContent() {
-            const sampleHtml = `
-                <h1>Welcome to Astro Blog</h1>
-                <p>This is a <strong>comprehensive example</strong> of <em>Astro-compatible markdown</em> content created with our editor.</p>
+        // Load demo content
+        function loadDemo() {
+            const demoContent = `
+                <h1>Welcome to My Astro Blog</h1>
+                <p>This is a <strong>comprehensive example</strong> of how to create <em>amazing content</em> for your Astro website using our custom editor.</p>
                 
-                <h2>Features Showcase</h2>
-                <p>Here are some key features that make Astro perfect for blogging:</p>
+                <h2>Why Choose Astro?</h2>
+                <p>Astro is the perfect framework for content-driven websites. Here's why developers love it:</p>
                 
                 <ul>
-                    <li><strong>Fast performance</strong> - Static site generation</li>
-                    <li><em>Component-based</em> - Use any framework</li>
-                    <li>Built-in <code>markdown support</code></li>
-                    <li>SEO optimized out of the box</li>
+                    <li><strong>Lightning fast</strong> - Ships zero JavaScript by default</li>
+                    <li><em>Framework agnostic</em> - Use React, Vue, Svelte, or any framework</li>
+                    <li>Built-in <code>markdown support</code> and content collections</li>
+                    <li>Automatic performance optimizations</li>
                 </ul>
                 
-                <h3>Code Example</h3>
-                <p>Here's how you can create a simple Astro component:</p>
+                <h3>Getting Started</h3>
+                <p>Here's a simple Astro component example:</p>
                 
-                <pre>---
-// Component Script (JS/TS)
+                <pre><code>---
+// Component script
 const title = "Hello Astro!";
+const items = ["Fast", "Flexible", "Fun"];
 ---
 &lt;h1&gt;{title}&lt;/h1&gt;
-&lt;p&gt;Welcome to my Astro site!&lt;/p&gt;</pre>
-                
-                <h3>Markdown Features</h3>
-                <p>This editor supports all standard markdown features:</p>
-                
-                <ol>
-                    <li>Headers (H1-H6)</li>
-                    <li>Text formatting (<strong>bold</strong>, <em>italic</em>, <u>underline</u>)</li>
-                    <li>Lists and nested lists</li>
-                    <li>Code blocks and inline <code>code</code></li>
-                    <li>Blockquotes</li>
-                    <li>Links and images</li>
-                </ol>
+&lt;ul&gt;
+  {items.map(item => &lt;li&gt;{item}&lt;/li&gt;)}
+&lt;/ul&gt;</code></pre>
                 
                 <blockquote>
-                    <p>"Astro is the web framework for content-driven websites. Build fast websites with your favorite tools."</p>
+                    "Astro lets you use your favorite tools and frameworks to build content-focused websites that load instantly."
                 </blockquote>
                 
-                <h4>Special HTML Elements</h4>
-                <p>Astro also supports special HTML elements like:</p>
-                <ul>
-                    <li>H<sub>2</sub>O (subscript)</li>
-                    <li>E=mc<sup>2</sup> (superscript)</li>
-                    <li>Press <kbd>Ctrl</kbd> + <kbd>C</kbd> to copy</li>
-                    <li><mark>Highlighted text</mark> for emphasis</li>
-                </ul>
+                <h4>Advanced Features</h4>
+                <p>Some advanced features you'll love:</p>
                 
-                <h5>Ready to Start?</h5>
-                <p>Start typing in the editor and watch as your rich text is converted to clean, Astro-compatible markdown in real-time!</p>
+                <ol>
+                    <li>Island architecture for optimal performance</li>
+                    <li>Built-in TypeScript support</li>
+                    <li>Automatic image optimization</li>
+                    <li>RSS feed generation</li>
+                    <li>SEO-friendly by default</li>
+                </ol>
+                
+                <p>Ready to start building? Check out the <a href="https://astro.build">official documentation</a> and join the amazing Astro community!</p>
             `;
             
-            quill.root.innerHTML = sampleHtml;
-            convertToMarkdown();
+            document.getElementById('editor').innerHTML = demoContent;
+            updateMarkdown();
             updateStats();
         }
-
-        // Initialize editor when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeEditor();
-            updateStats();
-        });
     </script>
 </body>
 </html>
