@@ -2,671 +2,706 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { SITE_TITLE } from '../consts';
 
-const title = "Free Astro Markdown Editor | Rich Content to Markdown Converter";
-const description = "Convert rich text content to Astro-compatible Markdown instantly. Professional WYSIWYG editor with tables, embeds, code blocks, and frontmatter support. Free online tool.";
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const title = 'Markdown Editor';
+const description = 'Create rich content and convert it to Astro-compatible markdown';
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astro Markdown Editor</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+	<head>
+		<BaseHead title={`${title} | ${SITE_TITLE}`} description={description} />
+		<style>
+			.editor-container {
+				max-width: 1200px;
+				margin: 0 auto;
+				padding: 2rem 1rem;
+			}
 
-        body {
-            font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+			.editor-header {
+				text-align: center;
+				margin-bottom: 2rem;
+			}
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
+			.editor-header h1 {
+				color: #0F1219;
+				font-size: 2.5rem;
+				margin-bottom: 0.5rem;
+			}
 
-        .header {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
+			.editor-header p {
+				color: #0F1219;
+				opacity: 0.8;
+				font-size: 1.1rem;
+			}
 
-        .header h1 {
-            font-size: 2rem;
-            margin-bottom: 8px;
-        }
+			.toolbar {
+				background: #F8F9FB;
+				padding: 1rem;
+				border-radius: 8px 8px 0 0;
+				border: 1px solid #2337FF;
+				border-bottom: none;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.5rem;
+			}
 
-        .header p {
-            opacity: 0.9;
-        }
+			.btn-group {
+				display: flex;
+				border: 1px solid #2337FF;
+				border-radius: 4px;
+				overflow: hidden;
+			}
 
-        .toolbar {
-            background: #f8f9fa;
-            padding: 15px;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
+			.toolbar-btn {
+				background: white;
+				border: none;
+				padding: 0.5rem 0.75rem;
+				cursor: pointer;
+				font-size: 0.875rem;
+				transition: all 0.2s;
+				border-right: 1px solid #2337FF;
+				color: #0F1219;
+			}
 
-        .btn-group {
-            display: flex;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            overflow: hidden;
-        }
+			.toolbar-btn:last-child {
+				border-right: none;
+			}
 
-        .toolbar-btn {
-            background: white;
-            border: none;
-            padding: 8px 12px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-            border-right: 1px solid #ddd;
-        }
+			.toolbar-btn:hover {
+				background: #2337FF;
+				color: white;
+			}
 
-        .toolbar-btn:last-child {
-            border-right: none;
-        }
+			.main-editor {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0;
+				border: 1px solid #2337FF;
+				border-radius: 0 0 8px 8px;
+				overflow: hidden;
+				min-height: 600px;
+			}
 
-        .toolbar-btn:hover {
-            background: #e9ecef;
-        }
+			.editor-panel, .output-panel {
+				padding: 1.5rem;
+				overflow-y: auto;
+			}
 
-        .toolbar-btn.active {
-            background: #007bff;
-            color: white;
-        }
+			.editor-panel {
+				background: white;
+				border-right: 1px solid #2337FF;
+			}
 
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            height: 70vh;
-        }
+			.output-panel {
+				background: #F8F9FB;
+			}
 
-        .editor-panel, .output-panel {
-            padding: 20px;
-            overflow-y: auto;
-        }
+			.editor {
+				min-height: 500px;
+				border: 1px solid #2337FF;
+				border-radius: 4px;
+				padding: 1rem;
+				font-size: 1rem;
+				line-height: 1.6;
+				outline: none;
+				background: white;
+				color: #0F1219;
+			}
 
-        .editor-panel {
-            border-right: 1px solid #e9ecef;
-        }
+			.editor:focus {
+				border-color: #2337FF;
+				box-shadow: 0 0 0 2px rgba(35, 55, 255, 0.1);
+			}
 
-        .editor {
-            min-height: 100%;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 16px;
-            font-size: 16px;
-            line-height: 1.6;
-            outline: none;
-            background: #fafafa;
-        }
+			.output {
+				background: #0F1219;
+				color: white;
+				padding: 1rem;
+				border-radius: 4px;
+				font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+				font-size: 0.875rem;
+				line-height: 1.6;
+				white-space: pre-wrap;
+				word-wrap: break-word;
+				min-height: 500px;
+			}
 
-        .output {
-            background: #2d3748;
-            color: #e2e8f0;
-            padding: 16px;
-            border-radius: 8px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
+			.panel-header {
+				font-weight: 600;
+				margin-bottom: 1rem;
+				color: #0F1219;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
 
-        .panel-header {
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: #2d3748;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+			.copy-btn {
+				background: #2337FF;
+				color: white;
+				border: none;
+				padding: 0.5rem 1rem;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 0.875rem;
+				transition: all 0.2s;
+			}
 
-        .copy-btn {
-            background: #10b981;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background 0.2s;
-        }
+			.copy-btn:hover {
+				background: #0F1219;
+			}
 
-        .copy-btn:hover {
-            background: #059669;
-        }
+			.preview-mode {
+				background: white;
+				border: 1px solid #2337FF;
+				border-radius: 4px;
+				padding: 1rem;
+				font-size: 1rem;
+				line-height: 1.6;
+				min-height: 500px;
+				color: #0F1219;
+			}
 
-        .preview-mode {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 16px;
-            font-size: 16px;
-            line-height: 1.6;
-        }
+			.preview-mode h1, .preview-mode h2, .preview-mode h3, 
+			.preview-mode h4, .preview-mode h5, .preview-mode h6 {
+				margin-bottom: 0.75rem;
+				color: #0F1219;
+			}
 
-        .preview-mode h1, .preview-mode h2, .preview-mode h3, 
-        .preview-mode h4, .preview-mode h5, .preview-mode h6 {
-            margin-bottom: 12px;
-            color: #2d3748;
-        }
+			.preview-mode blockquote {
+				border-left: 4px solid #2337FF;
+				padding-left: 1rem;
+				margin: 1rem 0;
+				color: #0F1219;
+				opacity: 0.8;
+				font-style: italic;
+			}
 
-        .preview-mode blockquote {
-            border-left: 4px solid #e2e8f0;
-            padding-left: 16px;
-            margin: 16px 0;
-            color: #4a5568;
-            font-style: italic;
-        }
+			.preview-mode table {
+				width: 100%;
+				border-collapse: collapse;
+				margin: 1rem 0;
+			}
 
-        .preview-mode table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 16px 0;
-        }
+			.preview-mode th, .preview-mode td {
+				border: 1px solid #2337FF;
+				padding: 0.5rem 0.75rem;
+				text-align: left;
+			}
 
-        .preview-mode th, .preview-mode td {
-            border: 1px solid #e2e8f0;
-            padding: 8px 12px;
-            text-align: left;
-        }
+			.preview-mode th {
+				background: #F8F9FB;
+				font-weight: 600;
+			}
 
-        .preview-mode th {
-            background: #f7fafc;
-            font-weight: 600;
-        }
+			.preview-mode code {
+				background: #F8F9FB;
+				padding: 0.125rem 0.25rem;
+				border-radius: 3px;
+				font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+				color: #2337FF;
+			}
 
-        .preview-mode code {
-            background: #f7fafc;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-        }
+			.preview-mode pre {
+				background: #0F1219;
+				color: white;
+				padding: 1rem;
+				border-radius: 4px;
+				overflow-x: auto;
+				margin: 1rem 0;
+			}
 
-        .preview-mode pre {
-            background: #2d3748;
-            color: #e2e8f0;
-            padding: 16px;
-            border-radius: 6px;
-            overflow-x: auto;
-            margin: 16px 0;
-        }
+			.tab-buttons {
+				display: flex;
+				margin-bottom: 1rem;
+			}
 
-        .tab-buttons {
-            display: flex;
-            margin-bottom: 12px;
-        }
+			.tab-btn {
+				background: #F8F9FB;
+				border: 1px solid #2337FF;
+				padding: 0.5rem 1rem;
+				cursor: pointer;
+				border-bottom: none;
+				transition: all 0.2s;
+				color: #0F1219;
+			}
 
-        .tab-btn {
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            padding: 8px 16px;
-            cursor: pointer;
-            border-bottom: none;
-            transition: all 0.2s;
-        }
+			.tab-btn:first-child {
+				border-radius: 4px 0 0 0;
+			}
 
-        .tab-btn:first-child {
-            border-radius: 6px 0 0 0;
-        }
+			.tab-btn:last-child {
+				border-radius: 0 4px 0 0;
+			}
 
-        .tab-btn:last-child {
-            border-radius: 0 6px 0 0;
-        }
+			.tab-btn.active {
+				background: white;
+				border-bottom: 1px solid white;
+				position: relative;
+				z-index: 1;
+			}
 
-        .tab-btn.active {
-            background: white;
-            border-bottom: 1px solid white;
-            position: relative;
-            z-index: 1;
-        }
+			.instructions {
+				background: #F8F9FB;
+				border: 1px solid #2337FF;
+				border-radius: 8px;
+				padding: 1.5rem;
+				margin-bottom: 2rem;
+			}
 
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-                height: auto;
-            }
-            
-            .editor-panel {
-                border-right: none;
-                border-bottom: 1px solid #e9ecef;
-            }
-            
-            .toolbar {
-                padding: 10px;
-            }
-            
-            .toolbar-btn {
-                padding: 6px 8px;
-                font-size: 12px;
-            }
-        }
-    </style>
-</head>
-<body>
-<Header />
-    <div class="container">
-        <div class="header">
-            <h1>🚀 Astro Markdown Editor</h1>
-            <p>Create rich content and convert it to Astro-compatible markdown</p>
-        </div>
+			.instructions h2 {
+				color: #0F1219;
+				margin-bottom: 1rem;
+			}
 
-        <div class="toolbar">
-            <div class="btn-group">
-                <button class="toolbar-btn" onclick="formatText('bold')" title="Bold">
-                    <strong>B</strong>
-                </button>
-                <button class="toolbar-btn" onclick="formatText('italic')" title="Italic">
-                    <em>I</em>
-                </button>
-                <button class="toolbar-btn" onclick="formatText('underline')" title="Underline">
-                    <u>U</u>
-                </button>
-                <button class="toolbar-btn" onclick="insertCode()" title="Inline Code">
-                    &lt;&gt;
-                </button>
-            </div>
+			.instructions ul {
+				color: #0F1219;
+				padding-left: 1.5rem;
+			}
 
-            <div class="btn-group">
-                <button class="toolbar-btn" onclick="insertHeading(1)" title="H1">H1</button>
-                <button class="toolbar-btn" onclick="insertHeading(2)" title="H2">H2</button>
-                <button class="toolbar-btn" onclick="insertHeading(3)" title="H3">H3</button>
-                <button class="toolbar-btn" onclick="insertHeading(4)" title="H4">H4</button>
-            </div>
+			.instructions li {
+				margin-bottom: 0.5rem;
+			}
 
-            <div class="btn-group">
-                <button class="toolbar-btn" onclick="insertList('ul')" title="Bullet List">• List</button>
-                <button class="toolbar-btn" onclick="insertList('ol')" title="Numbered List">1. List</button>
-                <button class="toolbar-btn" onclick="insertBlockquote()" title="Quote">&gt; Quote</button>
-            </div>
+			@media (max-width: 768px) {
+				.main-editor {
+					grid-template-columns: 1fr;
+					height: auto;
+				}
+				
+				.editor-panel {
+					border-right: none;
+					border-bottom: 1px solid #2337FF;
+				}
+				
+				.toolbar {
+					padding: 0.75rem;
+				}
+				
+				.toolbar-btn {
+					padding: 0.375rem 0.5rem;
+					font-size: 0.75rem;
+				}
 
-            <div class="btn-group">
-                <button class="toolbar-btn" onclick="insertTable()" title="Table">📊 Table</button>
-                <button class="toolbar-btn" onclick="insertCodeBlock()" title="Code Block">{ } Code</button>
-                <button class="toolbar-btn" onclick="insertLink()" title="Link">🔗 Link</button>
-                <button class="toolbar-btn" onclick="insertImage()" title="Image">🖼️ Image</button>
-            </div>
-        </div>
+				.editor-container {
+					padding: 1rem 0.5rem;
+				}
 
-        <div class="main-content">
-            <div class="editor-panel">
-                <div class="panel-header">
-                    <span>Rich Text Editor</span>
-                </div>
-                <div id="editor" class="editor" contenteditable="true" oninput="convertToMarkdown()">
-                    <h1>Welcome to Astro Markdown Editor</h1>
-                    <p>Start typing your content here. Use the toolbar above to format your text.</p>
-                    <h2>Features</h2>
-                    <ul>
-                        <li><strong>Bold</strong> and <em>italic</em> text</li>
-                        <li>Headers from H1 to H6</li>
-                        <li>Bullet and numbered lists</li>
-                        <li>Code blocks and inline <code>code</code></li>
-                        <li>Tables and blockquotes</li>
-                    </ul>
-                </div>
-            </div>
+				.editor-header h1 {
+					font-size: 2rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="editor-container">
+				<div class="editor-header">
+					<h1>🚀 Markdown Editor</h1>
+					<p>Create rich content and convert it to Astro-compatible markdown</p>
+				</div>
 
-            <div class="output-panel">
-                <div class="panel-header">
-                    <div class="tab-buttons">
-                        <button class="tab-btn active" onclick="switchTab('markdown')">Markdown</button>
-                        <button class="tab-btn" onclick="switchTab('preview')">Preview</button>
-                    </div>
-                    <button class="copy-btn" onclick="copyMarkdown()">📋 Copy</button>
-                </div>
-                <div id="markdown-output" class="output"></div>
-                <div id="preview-output" class="preview-mode" style="display: none;"></div>
-            </div>
-        </div>
-    </div>
+				<div class="instructions">
+					<h2>How to Use</h2>
+					<ul>
+						<li><strong>Type or paste content</strong> in the editor below</li>
+						<li><strong>Use toolbar buttons</strong> to format text and add elements</li>
+						<li><strong>View live markdown</strong> in the output panel</li>
+						<li><strong>Switch to Preview</strong> to see how it will render</li>
+						<li><strong>Copy the markdown</strong> for use in your Astro project</li>
+					</ul>
+				</div>
 
-    <script>
-        let currentTab = 'markdown';
+				<div class="toolbar">
+					<div class="btn-group">
+						<button class="toolbar-btn" onclick="formatText('bold')" title="Bold">
+							<strong>B</strong>
+						</button>
+						<button class="toolbar-btn" onclick="formatText('italic')" title="Italic">
+							<em>I</em>
+						</button>
+						<button class="toolbar-btn" onclick="formatText('underline')" title="Underline">
+							<u>U</u>
+						</button>
+						<button class="toolbar-btn" onclick="insertCode()" title="Inline Code">
+							&lt;&gt;
+						</button>
+					</div>
 
-        function formatText(command) {
-            document.execCommand(command, false, null);
-            convertToMarkdown();
-        }
+					<div class="btn-group">
+						<button class="toolbar-btn" onclick="insertHeading(1)" title="H1">H1</button>
+						<button class="toolbar-btn" onclick="insertHeading(2)" title="H2">H2</button>
+						<button class="toolbar-btn" onclick="insertHeading(3)" title="H3">H3</button>
+						<button class="toolbar-btn" onclick="insertHeading(4)" title="H4">H4</button>
+					</div>
 
-        function insertHeading(level) {
-            const selection = window.getSelection();
-            const range = selection.getRangeAt(0);
-            const heading = document.createElement('h' + level);
-            heading.textContent = 'Heading ' + level;
-            
-            try {
-                range.deleteContents();
-                range.insertNode(heading);
-                range.selectNode(heading);
-                selection.removeAllRanges();
-                selection.addRange(range);
-            } catch (e) {
-                document.execCommand('formatBlock', false, 'h' + level);
-            }
-            convertToMarkdown();
-        }
+					<div class="btn-group">
+						<button class="toolbar-btn" onclick="insertList('ul')" title="Bullet List">• List</button>
+						<button class="toolbar-btn" onclick="insertList('ol')" title="Numbered List">1. List</button>
+						<button class="toolbar-btn" onclick="insertBlockquote()" title="Quote">&gt; Quote</button>
+					</div>
 
-        function insertList(type) {
-            document.execCommand('insert' + (type === 'ul' ? 'UnorderedList' : 'OrderedList'), false, null);
-            convertToMarkdown();
-        }
+					<div class="btn-group">
+						<button class="toolbar-btn" onclick="insertTable()" title="Table">📊 Table</button>
+						<button class="toolbar-btn" onclick="insertCodeBlock()" title="Code Block">{ } Code</button>
+						<button class="toolbar-btn" onclick="insertLink()" title="Link">🔗 Link</button>
+						<button class="toolbar-btn" onclick="insertImage()" title="Image">🖼️ Image</button>
+					</div>
+				</div>
 
-        function insertBlockquote() {
-            document.execCommand('formatBlock', false, 'blockquote');
-            convertToMarkdown();
-        }
+				<div class="main-editor">
+					<div class="editor-panel">
+						<div class="panel-header">
+							<span>Rich Text Editor</span>
+						</div>
+						<div id="editor" class="editor" contenteditable="true" oninput="convertToMarkdown()">
+							<h1>Welcome to Astro Markdown Editor</h1>
+							<p>Start typing your content here. Use the toolbar above to format your text.</p>
+							<h2>Features</h2>
+							<ul>
+								<li><strong>Bold</strong> and <em>italic</em> text</li>
+								<li>Headers from H1 to H6</li>
+								<li>Bullet and numbered lists</li>
+								<li>Code blocks and inline <code>code</code></li>
+								<li>Tables and blockquotes</li>
+							</ul>
+							<p>This editor generates clean markdown that works perfectly with Astro's content system.</p>
+						</div>
+					</div>
 
-        function insertCode() {
-            const selection = window.getSelection();
-            const text = selection.toString();
-            if (text) {
-                const code = document.createElement('code');
-                code.textContent = text;
-                const range = selection.getRangeAt(0);
-                range.deleteContents();
-                range.insertNode(code);
-            }
-            convertToMarkdown();
-        }
+					<div class="output-panel">
+						<div class="panel-header">
+							<div class="tab-buttons">
+								<button class="tab-btn active" onclick="switchTab('markdown')">Markdown</button>
+								<button class="tab-btn" onclick="switchTab('preview')">Preview</button>
+							</div>
+							<button class="copy-btn" onclick="copyMarkdown()">📋 Copy</button>
+						</div>
+						<div id="markdown-output" class="output"></div>
+						<div id="preview-output" class="preview-mode" style="display: none;"></div>
+					</div>
+				</div>
+			</div>
+		</main>
+		<Footer />
 
-        function insertCodeBlock() {
-            const pre = document.createElement('pre');
-            const code = document.createElement('code');
-            code.textContent = 'console.log("Hello, World!");';
-            pre.appendChild(code);
-            
-            const selection = window.getSelection();
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            range.insertNode(pre);
-            convertToMarkdown();
-        }
+		<script>
+			let currentTab = 'markdown';
 
-        function insertTable() {
-            const tableHTML = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Header 1</th>
-                            <th>Header 2</th>
-                            <th>Header 3</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Cell 1</td>
-                            <td>Cell 2</td>
-                            <td>Cell 3</td>
-                        </tr>
-                        <tr>
-                            <td>Cell 4</td>
-                            <td>Cell 5</td>
-                            <td>Cell 6</td>
-                        </tr>
-                    </tbody>
-                </table>
-            `;
-            document.execCommand('insertHTML', false, tableHTML);
-            convertToMarkdown();
-        }
+			function formatText(command) {
+				document.execCommand(command, false, null);
+				convertToMarkdown();
+			}
 
-        function insertLink() {
-            const url = prompt('Enter URL:');
-            const text = prompt('Enter link text:') || url;
-            if (url) {
-                const link = `<a href="${url}">${text}</a>`;
-                document.execCommand('insertHTML', false, link);
-                convertToMarkdown();
-            }
-        }
+			function insertHeading(level) {
+				const selection = window.getSelection();
+				const range = selection.getRangeAt(0);
+				const heading = document.createElement('h' + level);
+				heading.textContent = 'Heading ' + level;
+				
+				try {
+					range.deleteContents();
+					range.insertNode(heading);
+					range.selectNode(heading);
+					selection.removeAllRanges();
+					selection.addRange(range);
+				} catch (e) {
+					document.execCommand('formatBlock', false, 'h' + level);
+				}
+				convertToMarkdown();
+			}
 
-        function insertImage() {
-            const url = prompt('Enter image URL:');
-            const alt = prompt('Enter alt text:') || 'Image';
-            if (url) {
-                const img = `<img src="${url}" alt="${alt}" />`;
-                document.execCommand('insertHTML', false, img);
-                convertToMarkdown();
-            }
-        }
+			function insertList(type) {
+				document.execCommand('insert' + (type === 'ul' ? 'UnorderedList' : 'OrderedList'), false, null);
+				convertToMarkdown();
+			}
 
-        function htmlToMarkdown(html) {
-            // Create a temporary div to work with
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
+			function insertBlockquote() {
+				document.execCommand('formatBlock', false, 'blockquote');
+				convertToMarkdown();
+			}
 
-            // Process the content
-            let markdown = processNode(tempDiv);
-            
-            // Clean up extra whitespace and newlines
-            markdown = markdown.replace(/\n{3,}/g, '\n\n').trim();
-            
-            return markdown;
-        }
+			function insertCode() {
+				const selection = window.getSelection();
+				const text = selection.toString();
+				if (text) {
+					const code = document.createElement('code');
+					code.textContent = text;
+					const range = selection.getRangeAt(0);
+					range.deleteContents();
+					range.insertNode(code);
+				}
+				convertToMarkdown();
+			}
 
-        function processNode(node) {
-            let result = '';
-            
-            for (let child of node.childNodes) {
-                if (child.nodeType === Node.TEXT_NODE) {
-                    result += child.textContent;
-                } else if (child.nodeType === Node.ELEMENT_NODE) {
-                    result += processElement(child);
-                }
-            }
-            
-            return result;
-        }
+			function insertCodeBlock() {
+				const pre = document.createElement('pre');
+				const code = document.createElement('code');
+				code.textContent = 'console.log("Hello, Astro!");';
+				pre.appendChild(code);
+				
+				const selection = window.getSelection();
+				const range = selection.getRangeAt(0);
+				range.deleteContents();
+				range.insertNode(pre);
+				convertToMarkdown();
+			}
 
-        function processElement(element) {
-            const tagName = element.tagName.toLowerCase();
-            const content = processNode(element);
-            
-            switch (tagName) {
-                case 'h1': return `# ${content}\n\n`;
-                case 'h2': return `## ${content}\n\n`;
-                case 'h3': return `### ${content}\n\n`;
-                case 'h4': return `#### ${content}\n\n`;
-                case 'h5': return `##### ${content}\n\n`;
-                case 'h6': return `###### ${content}\n\n`;
-                
-                case 'p': return `${content}\n\n`;
-                case 'br': return '\n';
-                
-                case 'strong':
-                case 'b': return `**${content}**`;
-                
-                case 'em':
-                case 'i': return `*${content}*`;
-                
-                case 'u': return `<u>${content}</u>`;
-                
-                case 'code': return `\`${content}\``;
-                
-                case 'pre': 
-                    const codeContent = element.querySelector('code');
-                    if (codeContent) {
-                        return `\`\`\`\n${codeContent.textContent}\n\`\`\`\n\n`;
-                    }
-                    return `\`\`\`\n${content}\n\`\`\`\n\n`;
-                
-                case 'blockquote': return `> ${content.replace(/\n/g, '\n> ')}\n\n`;
-                
-                case 'ul':
-                    let ulResult = '';
-                    for (let li of element.children) {
-                        if (li.tagName.toLowerCase() === 'li') {
-                            ulResult += `- ${processNode(li)}\n`;
-                        }
-                    }
-                    return ulResult + '\n';
-                
-                case 'ol':
-                    let olResult = '';
-                    let counter = 1;
-                    for (let li of element.children) {
-                        if (li.tagName.toLowerCase() === 'li') {
-                            olResult += `${counter}. ${processNode(li)}\n`;
-                            counter++;
-                        }
-                    }
-                    return olResult + '\n';
-                
-                case 'table':
-                    return processTable(element);
-                
-                case 'a':
-                    const href = element.getAttribute('href') || '';
-                    return `[${content}](${href})`;
-                
-                case 'img':
-                    const src = element.getAttribute('src') || '';
-                    const alt = element.getAttribute('alt') || '';
-                    return `![${alt}](${src})`;
-                
-                case 'sub': return `<sub>${content}</sub>`;
-                case 'sup': return `<sup>${content}</sup>`;
-                case 'kbd': return `<kbd>${content}</kbd>`;
-                case 'mark': return `<mark>${content}</mark>`;
-                case 'abbr': 
-                    const title = element.getAttribute('title') || '';
-                    return `<abbr title="${title}">${content}</abbr>`;
-                
-                case 'div': return content + '\n\n';
-                
-                default: return content;
-            }
-        }
+			function insertTable() {
+				const tableHTML = `
+					<table>
+						<thead>
+							<tr>
+								<th>Header 1</th>
+								<th>Header 2</th>
+								<th>Header 3</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Cell 1</td>
+								<td>Cell 2</td>
+								<td>Cell 3</td>
+							</tr>
+							<tr>
+								<td>Cell 4</td>
+								<td>Cell 5</td>
+								<td>Cell 6</td>
+							</tr>
+						</tbody>
+					</table>
+				`;
+				document.execCommand('insertHTML', false, tableHTML);
+				convertToMarkdown();
+			}
 
-        function processTable(table) {
-            let result = '';
-            const rows = table.querySelectorAll('tr');
-            
-            if (rows.length === 0) return '';
-            
-            // Process header row
-            const headerRow = rows[0];
-            const headerCells = headerRow.querySelectorAll('th, td');
-            const headers = Array.from(headerCells).map(cell => processNode(cell).trim());
-            
-            result += '| ' + headers.join(' | ') + ' |\n';
-            result += '| ' + headers.map(() => '---').join(' | ') + ' |\n';
-            
-            // Process data rows
-            for (let i = 1; i < rows.length; i++) {
-                const cells = rows[i].querySelectorAll('td, th');
-                const cellContents = Array.from(cells).map(cell => processNode(cell).trim());
-                result += '| ' + cellContents.join(' | ') + ' |\n';
-            }
-            
-            return result + '\n';
-        }
+			function insertLink() {
+				const url = prompt('Enter URL:');
+				const text = prompt('Enter link text:') || url;
+				if (url) {
+					const link = `<a href="${url}">${text}</a>`;
+					document.execCommand('insertHTML', false, link);
+					convertToMarkdown();
+				}
+			}
 
-        function convertToMarkdown() {
-            const editor = document.getElementById('editor');
-            const output = document.getElementById('markdown-output');
-            const preview = document.getElementById('preview-output');
-            
-            const markdown = htmlToMarkdown(editor.innerHTML);
-            output.textContent = markdown;
-            
-            // Update preview if it's active
-            if (currentTab === 'preview') {
-                updatePreview(markdown);
-            }
-        }
+			function insertImage() {
+				const url = prompt('Enter image URL:');
+				const alt = prompt('Enter alt text:') || 'Image';
+				if (url) {
+					const img = `<img src="${url}" alt="${alt}" />`;
+					document.execCommand('insertHTML', false, img);
+					convertToMarkdown();
+				}
+			}
 
-        function updatePreview(markdown) {
-            const preview = document.getElementById('preview-output');
-            // Simple markdown to HTML conversion for preview
-            let html = markdown
-                .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-                .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-                .replace(/^#### (.*$)/gm, '<h4>$1</h4>')
-                .replace(/^##### (.*$)/gm, '<h5>$1</h5>')
-                .replace(/^###### (.*$)/gm, '<h6>$1</h6>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/`(.*?)`/g, '<code>$1</code>')
-                .replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
-                .replace(/^- (.*$)/gm, '<li>$1</li>')
-                .replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
-                .replace(/\n\n/g, '</p><p>')
-                .replace(/^(.*)$/gm, '<p>$1</p>');
-            
-            preview.innerHTML = html;
-        }
+			function htmlToMarkdown(html) {
+				const tempDiv = document.createElement('div');
+				tempDiv.innerHTML = html;
+				let markdown = processNode(tempDiv);
+				markdown = markdown.replace(/\n{3,}/g, '\n\n').trim();
+				return markdown;
+			}
 
-        function switchTab(tab) {
-            currentTab = tab;
-            const markdownOutput = document.getElementById('markdown-output');
-            const previewOutput = document.getElementById('preview-output');
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            
-            if (tab === 'markdown') {
-                markdownOutput.style.display = 'block';
-                previewOutput.style.display = 'none';
-                tabButtons[0].classList.add('active');
-            } else {
-                markdownOutput.style.display = 'none';
-                previewOutput.style.display = 'block';
-                tabButtons[1].classList.add('active');
-                updatePreview(document.getElementById('markdown-output').textContent);
-            }
-        }
+			function processNode(node) {
+				let result = '';
+				
+				for (let child of node.childNodes) {
+					if (child.nodeType === Node.TEXT_NODE) {
+						result += child.textContent;
+					} else if (child.nodeType === Node.ELEMENT_NODE) {
+						result += processElement(child);
+					}
+				}
+				
+				return result;
+			}
 
-        function copyMarkdown() {
-            const output = document.getElementById('markdown-output');
-            navigator.clipboard.writeText(output.textContent).then(() => {
-                const btn = document.querySelector('.copy-btn');
-                const originalText = btn.textContent;
-                btn.textContent = '✅ Copied!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            });
-        }
+			function processElement(element) {
+				const tagName = element.tagName.toLowerCase();
+				const content = processNode(element);
+				
+				switch (tagName) {
+					case 'h1': return `# ${content}\n\n`;
+					case 'h2': return `## ${content}\n\n`;
+					case 'h3': return `### ${content}\n\n`;
+					case 'h4': return `#### ${content}\n\n`;
+					case 'h5': return `##### ${content}\n\n`;
+					case 'h6': return `###### ${content}\n\n`;
+					
+					case 'p': return `${content}\n\n`;
+					case 'br': return '\n';
+					
+					case 'strong':
+					case 'b': return `**${content}**`;
+					
+					case 'em':
+					case 'i': return `*${content}*`;
+					
+					case 'u': return `<u>${content}</u>`;
+					
+					case 'code': return `\`${content}\``;
+					
+					case 'pre': 
+						const codeContent = element.querySelector('code');
+						if (codeContent) {
+							return `\`\`\`\n${codeContent.textContent}\n\`\`\`\n\n`;
+						}
+						return `\`\`\`\n${content}\n\`\`\`\n\n`;
+					
+					case 'blockquote': return `> ${content.replace(/\n/g, '\n> ')}\n\n`;
+					
+					case 'ul':
+						let ulResult = '';
+						for (let li of element.children) {
+							if (li.tagName.toLowerCase() === 'li') {
+								ulResult += `- ${processNode(li)}\n`;
+							}
+						}
+						return ulResult + '\n';
+					
+					case 'ol':
+						let olResult = '';
+						let counter = 1;
+						for (let li of element.children) {
+							if (li.tagName.toLowerCase() === 'li') {
+								olResult += `${counter}. ${processNode(li)}\n`;
+								counter++;
+							}
+						}
+						return olResult + '\n';
+					
+					case 'table':
+						return processTable(element);
+					
+					case 'a':
+						const href = element.getAttribute('href') || '';
+						return `[${content}](${href})`;
+					
+					case 'img':
+						const src = element.getAttribute('src') || '';
+						const alt = element.getAttribute('alt') || '';
+						return `![${alt}](${src})`;
+					
+					case 'sub': return `<sub>${content}</sub>`;
+					case 'sup': return `<sup>${content}</sup>`;
+					case 'kbd': return `<kbd>${content}</kbd>`;
+					case 'mark': return `<mark>${content}</mark>`;
+					case 'abbr': 
+						const title = element.getAttribute('title') || '';
+						return `<abbr title="${title}">${content}</abbr>`;
+					
+					case 'div': return content + '\n\n';
+					
+					default: return content;
+				}
+			}
 
-        // Initialize
-        convertToMarkdown();
+			function processTable(table) {
+				let result = '';
+				const rows = table.querySelectorAll('tr');
+				
+				if (rows.length === 0) return '';
+				
+				const headerRow = rows[0];
+				const headerCells = headerRow.querySelectorAll('th, td');
+				const headers = Array.from(headerCells).map(cell => processNode(cell).trim());
+				
+				result += '| ' + headers.join(' | ') + ' |\n';
+				result += '| ' + headers.map(() => '---').join(' | ') + ' |\n';
+				
+				for (let i = 1; i < rows.length; i++) {
+					const cells = rows[i].querySelectorAll('td, th');
+					const cellContents = Array.from(cells).map(cell => processNode(cell).trim());
+					result += '| ' + cellContents.join(' | ') + ' |\n';
+				}
+				
+				return result + '\n';
+			}
 
-        // Auto-save to localStorage
-        const editor = document.getElementById('editor');
-        editor.addEventListener('input', () => {
-            localStorage.setItem('astro-markdown-editor-content', editor.innerHTML);
-        });
+			function convertToMarkdown() {
+				const editor = document.getElementById('editor');
+				const output = document.getElementById('markdown-output');
+				const preview = document.getElementById('preview-output');
+				
+				const markdown = htmlToMarkdown(editor.innerHTML);
+				output.textContent = markdown;
+				
+				if (currentTab === 'preview') {
+					updatePreview(markdown);
+				}
+			}
 
-        // Load saved content
-        const savedContent = localStorage.getItem('astro-markdown-editor-content');
-        if (savedContent) {
-            editor.innerHTML = savedContent;
-            convertToMarkdown();
-        }
-    </script>
-<Footer />
-</body>
-</html>
+			function updatePreview(markdown) {
+				const preview = document.getElementById('preview-output');
+				let html = markdown
+					.replace(/^# (.*$)/gm, '<h1>$1</h1>')
+					.replace(/^## (.*$)/gm, '<h2>$1</h2>')
+					.replace(/^### (.*$)/gm, '<h3>$1</h3>')
+					.replace(/^#### (.*$)/gm, '<h4>$1</h4>')
+					.replace(/^##### (.*$)/gm, '<h5>$1</h5>')
+					.replace(/^###### (.*$)/gm, '<h6>$1</h6>')
+					.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+					.replace(/\*(.*?)\*/g, '<em>$1</em>')
+					.replace(/`(.*?)`/g, '<code>$1</code>')
+					.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
+					.replace(/^- (.*$)/gm, '<li>$1</li>')
+					.replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
+					.replace(/\n\n/g, '</p><p>')
+					.replace(/^(.*)$/gm, '<p>$1</p>');
+				
+				preview.innerHTML = html;
+			}
+
+			function switchTab(tab) {
+				currentTab = tab;
+				const markdownOutput = document.getElementById('markdown-output');
+				const previewOutput = document.getElementById('preview-output');
+				const tabButtons = document.querySelectorAll('.tab-btn');
+				
+				tabButtons.forEach(btn => btn.classList.remove('active'));
+				
+				if (tab === 'markdown') {
+					markdownOutput.style.display = 'block';
+					previewOutput.style.display = 'none';
+					tabButtons[0].classList.add('active');
+				} else {
+					markdownOutput.style.display = 'none';
+					previewOutput.style.display = 'block';
+					tabButtons[1].classList.add('active');
+					updatePreview(document.getElementById('markdown-output').textContent);
+				}
+			}
+
+			function copyMarkdown() {
+				const output = document.getElementById('markdown-output');
+				navigator.clipboard.writeText(output.textContent).then(() => {
+					const btn = document.querySelector('.copy-btn');
+					const originalText = btn.textContent;
+					btn.textContent = '✅ Copied!';
+					setTimeout(() => {
+						btn.textContent = originalText;
+					}, 2000);
+				});
+			}
+
+			// Initialize
+			convertToMarkdown();
+
+			// Auto-save to localStorage
+			const editor = document.getElementById('editor');
+			editor.addEventListener('input', () => {
+				localStorage.setItem('astro-markdown-editor-content', editor.innerHTML);
+			});
+
+			// Load saved content
+			const savedContent = localStorage.getItem('astro-markdown-editor-content');
+			if (savedContent) {
+				editor.innerHTML = savedContent;
+				convertToMarkdown();
+			}
+		</script>
+	</body>
 </html>
